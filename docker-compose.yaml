@@ -1,0 +1,21 @@
+services:
+  mongo:
+    image: mongo
+    restart: unless-stopped
+    #command: "--bind_ip_all --replSet rs0 --keyFile /tmp/keyfile.key --auth"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+      MONGO_INITDB_DATABASE: weebify
+    volumes:
+      - mongo-data:/data/db
+    ports:
+      - 27017:27017
+
+#  s3:
+#  backend:
+#    depends_on:
+#      - mongo
+#      - s3
+volumes:
+  mongo-data:

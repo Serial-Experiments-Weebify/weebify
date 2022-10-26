@@ -1,0 +1,59 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type User {
+  """The unique id for this user"""
+  id: String!
+
+  """
+  The "handle"
+  """
+  username: String!
+
+  """The name that is actually displayed"""
+  displayName: String!
+
+  """Profile pic id"""
+  pfp: String!
+
+  """Profile description"""
+  bio: String!
+  role: UserRole!
+
+  """Note: gets returned only for admins and yourself"""
+  email: String
+
+  """The user that invited this user"""
+  invitedBy: User
+}
+
+enum UserRole {
+  ADMIN
+  MODERATOR
+  LEGENDARY_MEMBER
+  USER
+}
+
+type Query {
+  me: User!
+  users: [User!]!
+}
+
+type Mutation {
+  login(loginInput: LoginInput!): String!
+  createUser(createUserInput: CreateUserInput!): User!
+  generateInviteCode(id: String): String!
+}
+
+input LoginInput {
+  username: String!
+  password: String!
+}
+
+input CreateUserInput {
+  username: String!
+  password: String!
+  email: String
+  inviteCode: String!
+}
