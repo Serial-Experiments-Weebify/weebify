@@ -35,7 +35,7 @@ export class AuthService {
         if (!token) return null;
 
         const data = this.jwt.decode(token, { json: true }) as { sub: unknown };
-        if (typeof data.sub !== 'string') return null;
+        if (typeof data?.sub !== 'string') return null;
 
         return await this.userModel
             .findById(data.sub)

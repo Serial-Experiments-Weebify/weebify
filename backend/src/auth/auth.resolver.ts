@@ -4,15 +4,16 @@ import { LoginInput } from './dto/login.input';
 import { AuthService } from './auth.service';
 import { UseGuards } from '@nestjs/common';
 import { AuthOnlyGuard, NoAuthGuard } from './auth.guard';
+import { UserDocument } from 'src/users/entities/user.entity';
 
 @Resolver()
 export class AuthResolver {
-    constructor(private readonly auth: AuthService) {}
+    constructor(private readonly auth: AuthService) { }
 
     @UseGuards(AuthOnlyGuard)
-    @Query(() => User)
-    async me(@Context('user') user: User) {
-        return user;
+    @Query(() => User, { nullable: true })
+    async me(@Context('user') user: UserDocument) {
+        return new User(user, true);
     }
 
     @UseGuards(NoAuthGuard)

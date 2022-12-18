@@ -28,26 +28,10 @@ export class User {
     email?: string;
 
     @Prop({ type: SchemaTypes.ObjectId, ref: 'User', required: false })
-    invitedBy?: User;
+    invitedBy?: UserDocument;
 
     @Prop({ type: [String], default: [] })
     inviteCodes: string[];
-
-    public toGql(showEmail: boolean): Pub.User {
-        const u: Pub.User = {
-            //@ts-ignore
-            id: this._id as string,
-            username: this.username,
-            bio: this.bio,
-            pfp: this.pfp,
-            role: this.role,
-            displayName: this.displayName,
-            invitedBy: this.invitedBy?.toGql(showEmail),
-        };
-        if (showEmail) u.email = this.email;
-
-        return u;
-    }
 }
 
 export type UserDocument = User & Document;

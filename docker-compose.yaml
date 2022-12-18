@@ -1,21 +1,47 @@
 services:
-  mongo:
-    image: mongo
-    restart: unless-stopped
-    #command: "--bind_ip_all --replSet rs0 --keyFile /tmp/keyfile.key --auth"
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: root
-      MONGO_INITDB_DATABASE: weebify
-    volumes:
-      - mongo-data:/data/db
-    ports:
-      - 27017:27017
-
+    mongo:
+        image: mongo:6
+        command: "mongod --bind_ip_all --config /etc/mongo/mongod.conf"
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: root
+            MONGO_INITDB_DATABASE: weebify
+            MONGO_INITDB_ROOT_PASSWORD: root
+            PUID: 1000
+            PGID: 1000
+        volumes:
+            - mongo-data:/data/db
+            - ./mongo/mongod.conf:/etc/mongo/mongod.conf
+            - ./mongo/mongo.key:/etc/mongo.key:ro
+        ports:
+            - "27017:27017"
+        restart: unless-stopped
+        healthcheck:
+            test: echo 'db.runCommand("ping").ok' | mongo mongodb1:27017/test --quiet
+            interval: 30s
+            timeout: 10s
+            retries: 3
 #  s3:
 #  backend:
 #    depends_on:
 #      - mongo
 #      - s3
 volumes:
-  mongo-data:
+    mongo-data:
+# mongo:
+#     image: mongo:6
+#     hostname: localhost
+#     restart: unless-stopped
+#     entrypoint: /init.sh
+#     command: "mongod -f /etc/mongod.conf"
+#     # command: "mongod --bind_ip_all --replSet rs0 --keyFile /tmp/keyfile.key --auth"
+#     environment:
+#         MONGO_INITDB_ROOT_USERNAME: root
+#         MONGO_INITDB_ROOT_PASSWORD: root
+#         MONGO_INITDB_DATABASE: weebify
+#     volumes:
+#         - mongo-data:/data/db
+#         - ./database/init.sh:/init.sh:ro
+#         - ./database/mongod.conf/:/etc/mongod.conf:ro
+#         - ./database/init.js:/docker-entrypoint-initdb.d/01-init-rs.js:ro
+#     ports:
+#         - 27017:27017

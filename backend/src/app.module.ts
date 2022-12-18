@@ -16,6 +16,7 @@ import { RolesGuard } from './auth/roles/role.guard';
         AuthModule,
         UsersModule,
         MongooseModule.forRoot(
+            // 'mongodb://root:root@localhost/?authMechanism=DEFAULT&replicaSet=rs0'
             'mongodb://root:root@localhost:27017/weebify?authMechanism=DEFAULT&authSource=admin',
         ),
         GraphQLModule.forRootAsync<ApolloDriverConfig>({
@@ -23,8 +24,8 @@ import { RolesGuard } from './auth/roles/role.guard';
             imports: [AuthModule],
             inject: [AuthService],
             useFactory: (authService: AuthService) => ({
-                context({ req }) {
-                    const user = authenticateUser(authService, req);
+                async context({ req }) {
+                    const user = await authenticateUser(authService, req);
                     return { req, user };
                 },
                 autoSchemaFile: join(process.cwd(), 'src/schema.gql'),

@@ -12,8 +12,8 @@ export class CreateUserInput {
     @Field(() => String, { nullable: false })
     password: string;
 
-    @IsOptional()
     @IsEmail()
+    @IsOptional()
     @Field(() => String, { nullable: true })
     email: string;
 

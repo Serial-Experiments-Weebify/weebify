@@ -11,15 +11,15 @@ export class AuthOnlyGuard implements CanActivate {
     canActivate(context: ExecutionContext) {
         const ctx = GqlExecutionContext.create(context);
         const user: User | null = ctx.getContext().user || null;
-        return !!user;
+        return user != null;
     }
 }
 
 @Injectable()
 export class NoAuthGuard implements CanActivate {
-    canActivate(context: ExecutionContext) {
+    async canActivate(context: ExecutionContext) {
         const ctx = GqlExecutionContext.create(context);
-        const user: User | null = ctx.getContext().user || null;
-        return !user;
+        const user: User | null = await ctx.getContext().user || null;
+        return user == null;
     }
 }

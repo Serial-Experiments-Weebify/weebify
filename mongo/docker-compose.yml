@@ -1,0 +1,28 @@
+version: "3.7"
+services:
+
+  mongo:
+    image: mongo:6
+    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all","--config", "/etc/mongo/mongod.conf"]
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=weebroot
+      - MONGO_INITDB_ROOT_PASSWORD=weebroot
+      - PUID=1000
+      - PGID=1000
+    volumes:
+      - mongo-data:/data/db
+      - ./mongod.conf:/etc/mongo/mongod.conf
+      - ./certs/mongodb.key:/etc/mongo/certs/mongodb.key:ro
+    ports:
+      - "27017:27017"
+    expose:
+      - "27017:27017"
+    restart: unless-stopped
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongo mongodb1:27017/test --quiet
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  mongo-data:

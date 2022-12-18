@@ -1,4 +1,5 @@
 export enum UserRole {
+    GOD = 'god',
     ADMIN = 'admin',
     MODERATOR = 'mod',
     /*

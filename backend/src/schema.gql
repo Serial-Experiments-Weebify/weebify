@@ -25,10 +25,11 @@ type User {
   email: String
 
   """The user that invited this user"""
-  invitedBy: User
+  invitedBy: String
 }
 
 enum UserRole {
+  GOD
   ADMIN
   MODERATOR
   LEGENDARY_MEMBER
@@ -36,14 +37,17 @@ enum UserRole {
 }
 
 type Query {
-  me: User!
+  me: User
   users: [User!]!
+  user(idOrUsername: String!): User!
 }
 
 type Mutation {
   login(loginInput: LoginInput!): String!
-  createUser(createUserInput: CreateUserInput!): User!
+  signUp(createUserInput: CreateUserInput!): User!
   generateInviteCode(id: String): String!
+  updateUser(updateUserInput: UpdateUserInput!): User!
+  deleteUser(id: String!): Boolean!
 }
 
 input LoginInput {
@@ -56,4 +60,14 @@ input CreateUserInput {
   password: String!
   email: String
   inviteCode: String!
+}
+
+input UpdateUserInput {
+  """Optional; only allowed if user is admin"""
+  id: String
+  displayName: String
+  password: String
+  bio: String
+  email: String
+  oldPassword: String
 }
