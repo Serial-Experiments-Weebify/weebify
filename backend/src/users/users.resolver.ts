@@ -21,8 +21,6 @@ export class UsersResolver {
         return await this.usersService.create(createUserInput);
     }
 
-
-
     @UseGuards(AuthOnlyGuard)
     @Query(() => [User], { name: 'users' })
     @Roles(UserRole.ADMIN, UserRole.GOD, UserRole.MODERATOR)
@@ -67,5 +65,34 @@ export class UsersResolver {
     async deleteUser(@Args('id', { type: () => String }) id: string) {
         const { deletedCount } = await (this.usersService.deleteAccount(id));
         return deletedCount == 1;
+    }
+
+    @UseGuards(AuthOnlyGuard)
+    @Mutation(() => Boolean)
+    @Roles(UserRole.ADMIN, UserRole.GOD)
+    async setRole(
+        @Context('user') user: UserDocument,
+        @Args('id', { type: () => String }) id: string,
+        @Args('role', { type: () => UserRole }) role: UserRole
+    ) {
+        return await this.usersService.setRole(id, role, user.role);
+    }
+
+    @UseGuards(AuthOnlyGuard)
+    @Query(() => [User])
+    async searchUsers(
+        @Args('query', { type: () => String }) query: string,
+        @Args('from', { type: () => Int, nullable: true }) from: number = 0,
+        @Args('limit', { type: () => Int, nullable: true }) limit: number = 10,
+    ) {
+        return (await this.usersService.search(query, from, limit)).map(x => new User(x, false));
+    }
+
+    @UseGuards(AuthOnlyGuard)
+    @Mutation(() => String)
+    async updatePfp(
+        @Context('user') user: UserDocument
+    ) {
+        return await this.usersService.createPfpToken(user.id);
     }
 }

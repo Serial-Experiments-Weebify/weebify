@@ -15,6 +15,10 @@ export class User {
     @Prop({ required: true })
     pfp: string;
 
+    // used by the media service to authenticate PFP updates
+    @Prop({ type: String, required: false })
+    pfpToken?: string;
+
     @Prop({ required: false, default: '' })
     bio: string;
 

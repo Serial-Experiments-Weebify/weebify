@@ -3,9 +3,10 @@ import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { AnyKeys, Connection, FilterQuery, Model, Types, UpdateQuery } from 'mongoose';
 import { CreateUserInput } from './dto/create-user.input';
 import { User, UserDocument } from './entities/user.entity';
-import { UserRole } from './enums/UserRole.enum';
+import { roleCompare, UserRole } from './enums/UserRole.enum';
 import { compare, hash } from 'bcrypt';
 import { UpdateUserInput } from './dto/update-user.input';
+import { v4 as uuid } from 'uuid'
 
 const DEFAULT_PFP = 'default';
 
@@ -26,6 +27,10 @@ export class UsersService {
         TODO: USE TRANSACTION
          mongo needs to be started as a replica set
          couldnt figure out how to do it in docker
+
+         or not
+
+         might not need em
     */
     async create(input: CreateUserInput) {
         const u = new this.userModel();
@@ -58,7 +63,7 @@ export class UsersService {
     }
 
     async addInvite(uid: string) {
-        const invite = new Types.ObjectId().toString();
+        const invite = uuid();
         await this.userModel.updateOne(
             { _id: uid },
             { $push: { inviteCodes: invite } },
@@ -130,5 +135,47 @@ export class UsersService {
 
     async deleteAccount(id: string) {
         return await this.userModel.deleteOne({ _id: id });
+    }
+
+    async setRole(userId: string, to: UserRole, as: UserRole) {
+        if (roleCompare(as, to) <= 0) throw "You cannot give out this role";
+
+        const u = await this.userModel.findById(userId);
+        if (!u) throw "User does not exist";
+
+        if (roleCompare(as, u.role) <= 0) throw "You cannot manage this user";
+
+        u.role = to;
+        await u.save();
+        return true;
+    }
+
+    static escapeRegex(string: string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+    }
+
+    async createPfpToken(uid: string,) {
+        const token = uuid();
+
+        await this.userModel.updateOne(
+            { _id: uid },
+            { pfpToken: token },
+        );
+
+        return token;
+    }
+
+    async search(query: string, from: number, limit: number) {
+        query = UsersService.escapeRegex(query);
+        return this.userModel.find({ //TODO: remove the text index on user since it doesnt work
+            $or: [
+                {
+                    displayName: { $regex: query, $options: 'i' }
+                },
+                {
+                    username: { $regex: query, $options: 'i' }
+                }
+            ]
+        }, null, { limit, skip: from }); //TODO: proper pagination?
     }
 }

@@ -10,3 +10,16 @@ export enum UserRole {
         Ooh, I became a */ LEGENDARY_MEMBER = 'user+',
     USER = 'user',
 }
+
+const ROLE_WEIGHT: Record<UserRole, number> = {
+    [UserRole.GOD]: 1000,
+    [UserRole.ADMIN]: 100,
+    [UserRole.MODERATOR]: 50,
+    [UserRole.LEGENDARY_MEMBER]: 10,
+    [UserRole.USER]: 1,
+
+}
+
+export function roleCompare(a: UserRole, b: UserRole) {
+    return ROLE_WEIGHT[a] - ROLE_WEIGHT[b];
+}
