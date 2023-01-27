@@ -1,0 +1,13 @@
+schema: "../backend/src/schema.gql"
+documents:
+- src/**/*.vue
+- src/**/*.ts
+generates:
+  "./src/_gql/":
+    preset: client
+    config:
+      useTypeImports: true
+    presetConfig:
+      gqlTagName: 'gql'
+ignoreNoDocuments: true
+    #  - typescript-vue-apollo

@@ -38,3 +38,11 @@ lerna-debug.log*
 minio/
 
 **/*.env
+
+**/dist
+**/dist-ssr
+**/coverage
+*.local
+
+#graphql generated types
+**/_gql/*

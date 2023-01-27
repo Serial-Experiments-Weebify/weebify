@@ -36,8 +36,14 @@ enum UserRole {
   USER
 }
 
+type Media {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
 type Query {
   me: User
+  media(id: Int!): Media!
   users: [User!]!
   user(idOrUsername: String!): User!
   searchUsers(query: String!, from: Int, limit: Int): [User!]!
@@ -45,6 +51,9 @@ type Query {
 
 type Mutation {
   login(loginInput: LoginInput!): String!
+  createMedia(createMediaInput: CreateMediaInput!): Media!
+  updateMedia(updateMediaInput: UpdateMediaInput!): Media!
+  removeMedia(id: Int!): Media!
   signUp(createUserInput: CreateUserInput!): User!
   generateInviteCode(id: String): String!
   updateUser(updateUserInput: UpdateUserInput!): User!
@@ -56,6 +65,17 @@ type Mutation {
 input LoginInput {
   username: String!
   password: String!
+}
+
+input CreateMediaInput {
+  """Example field (placeholder)"""
+  exampleField: Int!
+}
+
+input UpdateMediaInput {
+  """Example field (placeholder)"""
+  exampleField: Int
+  id: Int!
 }
 
 input CreateUserInput {

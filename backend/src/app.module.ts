@@ -1,24 +1,36 @@
-import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
-import { GraphQLModule } from '@nestjs/graphql';
-import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
-import { UsersModule } from './users/users.module';
-import { AuthModule } from './auth/auth.module';
-
 import { join } from 'path';
-import { authenticateUser } from './auth/auth.middleware';
-import { AuthService } from './auth/auth.service';
+
+import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
+import { GraphQLModule } from '@nestjs/graphql';
+import { MongooseModule } from '@nestjs/mongoose';
+import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+
+
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
+import { MediaModule } from './media/media.module';
+
+import { AuthService } from './auth/auth.service';
 import { RolesGuard } from './auth/roles/role.guard';
+import { authenticateUser } from './auth/auth.middleware';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
     imports: [
+        ConfigModule.forRoot({ isGlobal: true }),
         AuthModule,
-        UsersModule,
-        MongooseModule.forRoot(
-            // 'mongodb://root:root@localhost/?authMechanism=DEFAULT&replicaSet=rs0'
-            'mongodb://root:root@localhost:27017/weebify?authMechanism=DEFAULT&authSource=admin',
-        ),
+        // MongooseModule.forRootAsync(
+        //     // 'mongodb://root:root@localhost/?authMechanism=DEFAULT&replicaSet=rs0'
+        //     'mongodb://root:root@localhost:27017/weebify?authMechanism=DEFAULT&authSource=admin',
+        // ),
+        MongooseModule.forRootAsync({
+            imports: [ConfigModule],
+            inject: [ConfigService],
+            async useFactory(config: ConfigService) {
+                return { uri: await config.getOrThrow('DATABASE') }
+            }
+        }),
         GraphQLModule.forRootAsync<ApolloDriverConfig>({
             driver: ApolloDriver,
             imports: [AuthModule],
@@ -31,12 +43,11 @@ import { RolesGuard } from './auth/roles/role.guard';
                 autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
             }),
         }),
+        MediaModule,
+        UsersModule,
     ],
     providers: [
-        {
-            provide: APP_GUARD,
-            useClass: RolesGuard,
-        },
+        { provide: APP_GUARD, useClass: RolesGuard, },
     ],
 })
-export class AppModule {}
+export class AppModule { }
