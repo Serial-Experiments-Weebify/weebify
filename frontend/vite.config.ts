@@ -11,6 +11,13 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
   },
+  css: {
+    preprocessorOptions: {
+      less: {
+        additionalData: '@import "@/assets/vars.less";'
+      }
+    }
+  },
   server: {
     proxy: {
       '/graphql': 'http://localhost:3000',

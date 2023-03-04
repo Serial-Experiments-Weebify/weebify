@@ -1,35 +1,28 @@
 <script setup lang="ts">
+import TextInput from '@/components/Forms/TextInput.vue';
 import { useAuthStore } from '@/stores/auth';
-import { gql } from '@/_gql';
-import { useMutation } from '@vue/apollo-composable';
+import { useNotificationStore } from '@/stores/notifications';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 const authStore = useAuthStore();
+const notify = useNotificationStore();
 const router = useRouter();
 
-const { mutate: logIn } = useMutation(gql(`
-    mutation LogIn($login: LoginInput!) {
-        login(loginInput: $login)
-    }
-`));
-
 const username = ref(''),
-    password = ref('');
+    password = ref(''),
+    loading = ref(false);
 
 async function login() {
+    loading.value = true;
     try {
-        const r = await logIn({
-            login: { username: username.value, password: password.value },
-        });
-        if (r?.data) {
-            authStore.logIn(r.data.login);
-            router.push('/');
-        } else if (r?.errors) {
-            console.error(r?.errors);
-        }
+        await authStore.logIn(username.value, password.value);
+        notify.addNotification('info',"Present Day, Present Time...")
+        router.replace({ name: 'home' });
     } catch (e) {
-        console.error(e);
+        notify.addNotification('error', e?.toString() ?? 'Unknown error');
+    } finally {
+        loading.value = false;
     }
 }
 </script>
@@ -37,27 +30,94 @@ async function login() {
 <template>
     <main>
         <form @submit.prevent="login">
-            <label for="username">Username:</label>
-            <input
+            <TextInput
                 type="text"
+                v-model:value="username"
                 name="username"
-                id="username"
+                label="Username:"
+                required
                 autocomplete="username"
-                required
-                v-model="username"
             />
-
-            <label for="password">Password:</label>
-            <input
+            <TextInput
                 type="password"
+                v-model:value="password"
                 name="password"
-                id="password"
-                autocomplete="password"
+                label="Password:"
                 required
-                v-model="password"
+                autocomplete="password"
             />
-
-            <input type="submit" value="Log in" />
+            <input
+                class="w-big-button disable-loading"
+                :disabled="loading"
+                type="submit"
+                value="Log In"
+            />
+            <RouterLink :to="{ name: 'signup' }">Sign up instead</RouterLink>
         </form>
     </main>
 </template>
+
+<style scoped lang="less">
+main {
+    display: grid;
+    place-items: center;
+
+    form {
+        display: flex;
+        flex-direction: column;
+
+        padding: 20px;
+        border-radius: 20px;
+        background-color: @c-mirage;
+
+        a {
+            margin-top: 10px;
+            text-align: center;
+        }
+    }
+}
+
+input[type='submit'] {
+    border: none;
+    outline: none;
+    background-color: @c-cyan;
+    font-size: 22px;
+    padding: 10px;
+    border-radius: 1000px;
+    color: @c-oil;
+    font-weight: 500;
+
+    &:hover {
+        background-color: lighten(@c-cyan, 10%);
+    }
+    &.disable-loading:disabled {
+        color: @c-snow;
+        background-color: desaturate(@c-cyan, 15%);
+        background-image: linear-gradient(
+            90deg,
+            #0000 40%,
+            fade(@c-snow, 50%),
+            #0000 60%
+        );
+        background-size: 220%;
+        animation: Loading 1s ease infinite;
+    }
+}
+
+@keyframes Loading {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+input:focus ~ label {
+    color: @c-cyan;
+    font-weight: bold;
+}
+</style>

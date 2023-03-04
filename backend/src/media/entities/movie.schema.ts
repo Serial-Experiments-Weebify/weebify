@@ -1,9 +1,9 @@
-import { Prop, Schema, SchemaFactory, } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, SchemaTypes } from 'mongoose';
 import { MediaKind } from '../enums/mediaKind.enum';
 
 @Schema({
-    _id: false
+    _id: false,
 })
 export class Movie {
     @Prop({ required: true, type: String })

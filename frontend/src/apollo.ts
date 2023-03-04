@@ -2,13 +2,13 @@ import {
     ApolloClient,
     createHttpLink,
     InMemoryCache,
-} from "@apollo/client/core";
+} from '@apollo/client/core';
 
 import { setContext } from '@apollo/client/link/context';
-import { useAuthStore } from "./stores/auth";
+import { useAuthStore } from './stores/auth';
 
 const http = createHttpLink({
-    uri: "/graphql",
+    uri: '/graphql',
 });
 
 const link = setContext((_, { headers }) => {
@@ -21,9 +21,9 @@ const link = setContext((_, { headers }) => {
     return {
         headers: {
             ...headers,
-            ...newHeaders
-        }
-    }
+            ...newHeaders,
+        },
+    };
 }).concat(http);
 
 const cache = new InMemoryCache();

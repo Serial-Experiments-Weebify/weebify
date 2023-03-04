@@ -22,7 +22,7 @@ export class AuthService {
         const user = await this.userModel.findOne({ username: input.username });
         if (!user) throw 'User does not exist';
 
-        if (!compare(input.password, user.passwordHash)) {
+        if (!(await compare(input.password, user.passwordHash))) {
             throw 'Incorrect password';
         }
 

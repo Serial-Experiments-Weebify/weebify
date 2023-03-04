@@ -3,8 +3,10 @@ import { IsEmail, IsOptional, Length } from 'class-validator';
 
 @InputType()
 export class UpdateUserInput {
-
-    @Field(() => String, { description: 'Optional; only allowed if user is admin', nullable: true })
+    @Field(() => String, {
+        description: 'Optional; only allowed if user is admin',
+        nullable: true,
+    })
     id?: string;
 
     @Field(() => String, { nullable: true })
@@ -17,6 +19,7 @@ export class UpdateUserInput {
 
     @IsOptional()
     @Field(() => String, { nullable: true })
+    @Length(1, 1000)
     bio?: string;
 
     @IsEmail()
@@ -25,7 +28,6 @@ export class UpdateUserInput {
     email?: string;
 
     @Length(8, 64)
-    @Field(() => String, { nullable: true})
+    @Field(() => String, { nullable: true })
     oldPassword?: string;
-
 }

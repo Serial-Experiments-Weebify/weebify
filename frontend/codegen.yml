@@ -1,6 +1,7 @@
 schema: "../backend/src/schema.gql"
 documents:
 - src/**/*.vue
+- src/**/**/*.vue
 - src/**/*.ts
 generates:
   "./src/_gql/":

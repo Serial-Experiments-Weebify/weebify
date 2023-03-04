@@ -1,4 +1,4 @@
-import { Prop, Schema, SchemaFactory, } from '@nestjs/mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, SchemaTypes } from 'mongoose';
 import { MediaKind } from '../enums/mediaKind.enum';
 
@@ -15,18 +15,16 @@ export class Episode {
 
     @Prop({ required: true, type: String })
     mediaId: string;
-
 }
 
 export const EpisodeSchema = SchemaFactory.createForClass(Episode);
 
-
 @Schema({
-    _id: false
+    _id: false,
 })
 export class Tv {
-    // @Prop({ required: true, type: [Episode] })
-    episodes: Episode[]
+    @Prop({ required: true, type: [Object] })
+    episodes: Episode[];
 }
 
 export const TvSchema = SchemaFactory.createForClass(Tv);

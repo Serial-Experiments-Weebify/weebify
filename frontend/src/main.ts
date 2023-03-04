@@ -1,22 +1,21 @@
-import { createApp } from 'vue'
-import { createPinia } from 'pinia'
-import { DefaultApolloClient } from '@vue/apollo-composable'
+import { createApp } from 'vue';
+import { createPinia } from 'pinia';
+import { DefaultApolloClient } from '@vue/apollo-composable';
 
-import App from './App.vue'
-import router from './router'
+import App from './App.vue';
+import '@/assets/index.less';
+
+import router from './router';
 import { apolloClient } from './apollo';
-import persistedState from "pinia-plugin-persistedstate"
+import persistedState from 'pinia-plugin-persistedstate';
 
-import './assets/main.css'
-
-
-const app = createApp(App)
+const app = createApp(App);
 const pinia = createPinia();
 
-pinia.use(persistedState)
+pinia.use(persistedState);
 
-app.use(pinia)
+app.use(pinia);
 app.provide(DefaultApolloClient, apolloClient);
-app.use(router)
+app.use(router);
 
-app.mount('#app')
+app.mount('#app');

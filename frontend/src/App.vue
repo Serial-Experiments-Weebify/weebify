@@ -1,79 +1,227 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router';
-import { useAuthStore } from './stores/auth';
+import UserIcon from '@/icons/UserIcon.vue';
+import { useAuthStore } from '@/stores/auth';
+import SearchIcon from '@/icons/SearchIcon.vue';
+import { RouterLink, RouterView, useRouter } from 'vue-router';
+import { useNotificationStore } from '@/stores/notifications';
+import Notification from '@/components/Notifications/Notification.vue';
+import DropDown from '@/components/DropDown.vue';
+import HomeIcon from '@/icons/HomeIcon.vue';
+import LogOutIcon from '@/icons/LogOutIcon.vue';
 
 const auth = useAuthStore();
+auth.init();
+const notif = useNotificationStore();
+const router = useRouter();
+
+function logout() {
+    auth.logOut();
+    router.push({ name: 'index' });
+}
 </script>
 
 <template>
-    <nav>
-        <div id="logo"></div>
-        <button v-if="auth.loggedIn">dobesedno jaz</button>
-        <RouterLink to="lgoin" v-else>Log in</RouterLink>
+    <div id="notifications">
+        <transition-group name="notif-list">
+            <Notification
+                v-for="n in notif.notifications"
+                :key="n.id"
+                :type="n.type"
+                :text="n.message"
+                :duration="n.time"
+                @done="
+                    () => {
+                        notif.removeNotification(n.id);
+                    }
+                "
+            />
+        </transition-group>
+    </div>
+    <nav class="blur">
+        <RouterLink to="/" id="logo">
+            <img src="@/assets/icons/logo.svg" alt="logo" />
+            Weebify
+        </RouterLink>
+        <div :style="{ flex: 1 /* spacer */ }"></div>
+        <RouterLink class="nav-icon-link" to="/search" v-if="auth.loggedIn">
+            <SearchIcon class="transition-stroke" />
+        </RouterLink>
+
+        <RouterLink class="nav-icon-link" to="/login" v-if="!auth.loggedIn">
+            <UserIcon class="transition-stroke" />
+            Log in
+        </RouterLink>
+        <DropDown v-else-if="auth.me">
+            <template #default>
+                <div class="nav-icon-link">
+                    <!-- TODO: fix CDN -->
+                    <img
+                        :src="`/cdn/pfp/${auth.me.pfp}/tiny.webp`"
+                        alt="Profile picture"
+                    />
+                    {{ auth.me.username }}
+                </div>
+            </template>
+
+            <template #popup>
+                <RouterLink to="/home" class="nav-icon-link">
+                    <HomeIcon class="transition-stroke" />
+                    Home
+                </RouterLink>
+                <RouterLink
+                    :to="{
+                        name: 'user',
+                        params: { username: auth.me.username },
+                    }"
+                    class="nav-icon-link"
+                >
+                    <UserIcon class="transition-stroke" />
+                    Profile
+                </RouterLink>
+                <a href="#" class="nav-icon-link" @click.prevent="logout">
+                    <LogOutIcon class="transition-stroke" />
+                    Logout
+                </a>
+            </template>
+        </DropDown>
     </nav>
-    <RouterView />
+    <!-- <router-view v-slot="{ Component }"> -->
+    <!-- <transition name="fade"> -->
+    <!-- <component :is="Component" :style="{ flex: 1 }" /> -->
+    <!-- </transition> -->
+    <!-- </router-view> -->
+    <router-view :style="{ flex: 1 }" />
 </template>
 
 <style lang="less">
-header {
-    line-height: 1.5;
-    max-height: 100vh;
-}
+#app {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 
-.logo {
-    display: block;
-    margin: 0 auto 2rem;
-}
+    #notifications {
+        z-index: 200;
+        position: fixed;
+        top: 0;
+        right: 0;
 
-nav {
-    width: 100%;
-    font-size: 12px;
-    text-align: center;
-    margin-top: 2rem;
-}
-
-nav a.router-link-exact-active {
-    color: var(--color-text);
-}
-
-nav a.router-link-exact-active:hover {
-    background-color: transparent;
-}
-
-nav a {
-    display: inline-block;
-    padding: 0 1rem;
-    border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-    border: 0;
-}
-
-@media (min-width: 1024px) {
-    header {
         display: flex;
-        place-items: center;
-        padding-right: calc(var(--section-gap) / 2);
-    }
-
-    .logo {
-        margin: 0 2rem 0 0;
-    }
-
-    header .wrapper {
-        display: flex;
-        place-items: flex-start;
-        flex-wrap: wrap;
+        flex-direction: column;
+        gap: 10px;
+        margin: 10px;
+        width: 300px;
     }
 
     nav {
-        text-align: left;
-        margin-left: -1rem;
-        font-size: 1rem;
+        z-index: 100;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 64px;
+        padding: 0 12px;
 
-        padding: 1rem 0;
-        margin-top: 1rem;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        user-select: none;
+
+        #logo {
+            font-size: 32px;
+            font-weight: 400;
+            color: @c-snow;
+            text-decoration: none;
+            line-height: 48px;
+
+            img {
+                vertical-align: middle;
+                display: inline-block;
+                height: 48px;
+            }
+        }
+
+        .nav-icon-link {
+            display: flex;
+            color: @c-snow;
+            text-decoration: none;
+            font-weight: 500;
+            align-items: center;
+            transition: color @t-subtle ease;
+            font-size: 14px;
+
+            img {
+                width: 48px;
+                height: 48px;
+                object-fit: cover;
+                border-radius: 50%;
+                margin-right: 10px;
+                outline: 2px solid #0000;
+                transition: outline ease @t-subtle;
+            }
+
+            &:hover {
+                color: @c-cyan;
+
+                svg {
+                    stroke: @c-cyan;
+                }
+
+                img {
+                    outline: 2px solid @c-cyan;
+                }
+            }
+        }
+
+        &.solid {
+            background-color: @c-mirage;
+        }
+
+        &.transparent {
+            background-color: transparent;
+        }
+
+        &.blur {
+            background-color: fade(@c-mirage, 75%);
+            backdrop-filter: blur(5px);
+        }
     }
+
+    main {
+        padding-top: 64px;
+    }
+}
+
+.fade-enter-active,
+.fade-leave-active {
+    top: 0;
+    transition: opacity 0.2s ease;
+    position: absolute;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    top: 0;
+    position: absolute;
+    opacity: 0;
+}
+
+.notif-list-move,
+.notif-list-enter-active,
+.notif-list-leave-active {
+    transition: all 0.5s ease;
+}
+
+.notif-list-enter-from {
+    opacity: 0;
+    transform: translateY(300px);
+}
+
+.notif-list-leave-to {
+    opacity: 0;
+    transform: translatex(300px);
+}
+
+.notif-list-leave-active {
+    position: absolute;
 }
 </style>

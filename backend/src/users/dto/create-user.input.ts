@@ -4,7 +4,7 @@ import { IsEmail, IsOptional, Length, Matches } from 'class-validator';
 @InputType()
 export class CreateUserInput {
     @Length(3, 32)
-    @Matches(/^([a-z0-9]_?){1,}[a-z0-9]$/m)
+    @Matches(/^([a-z0-9]_?){1,}[a-z0-9]$/i)
     @Field(() => String, { nullable: false })
     username: string;
 
