@@ -46,6 +46,17 @@ pre {
     }
 }
 
+button.reset {
+    background-color: transparent;
+    border-width: 0;
+    font-family: inherit;
+    font-size: inherit;
+    font-style: inherit;
+    font-weight: inherit;
+    line-height: inherit;
+    padding: 0;
+}
+
 .w-base-button {
     border: none;
     outline: none;
@@ -80,6 +91,44 @@ pre {
     padding: 5px 10px;
 }
 
+.w-button-red {
+    background-color: @c-mandy;
+    color: @c-oil;
+
+    &:hover {
+        background-color: lighten(@c-mandy, 10%);
+    }
+}
+
+.w-button-green {
+    background-color: @c-algae;
+    color: @c-oil;
+
+    &:hover {
+        background-color: lighten(@c-algae, 10%);
+    }
+}
+
+select.w-select {
+    color: @c-snow;
+    background-color: darken(@c-mirage, 6%);
+    border: solid 2px @c-oil;
+    font-size: 22px;
+    padding: 8px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    transition: @t-subtle border-color ease;
+
+    &:hover {
+        outline: none;
+        border-color: darken(@c-cyan, 10%);
+    }
+
+    &:focus {
+        outline: none;
+        border-color: @c-cyan;
+    }
+}
 
 //forms
 form .wform {
@@ -91,7 +140,7 @@ form .wform {
         text-align: center;
     }
 
-    input:focus~label {
+    input:focus ~ label {
         color: @c-cyan;
         font-weight: bold;
     }
@@ -113,15 +162,16 @@ form .wform {
         &.disable-loading:disabled {
             color: @c-snow;
             background-color: desaturate(@c-cyan, 15%);
-            background-image: linear-gradient(90deg,
-                    #0000 40%,
-                    fade(@c-snow, 50%),
-                    #0000 60%);
+            background-image: linear-gradient(
+                90deg,
+                #0000 40%,
+                fade(@c-snow, 50%),
+                #0000 60%
+            );
             background-size: 220%;
             animation: Loading 1s ease infinite;
         }
     }
-
 }
 
 @keyframes Loading {

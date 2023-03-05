@@ -1,19 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
-import {
-    AnyKeys,
-    Connection,
-    FilterQuery,
-    Model,
-    Types,
-    UpdateQuery,
-} from 'mongoose';
+import { AnyKeys, Connection, FilterQuery, Model } from 'mongoose';
 import { CreateUserInput } from './dto/create-user.input';
-import { User, UserDocument } from './entities/user.entity';
+import { UserDocument } from './entities/user.entity';
 import { roleCompare, UserRole } from './enums/UserRole.enum';
 import { compare, hash } from 'bcrypt';
 import { UpdateUserInput } from './dto/update-user.input';
 import { v4 as uuid } from 'uuid';
+import { GraphQLError } from 'graphql';
 
 const DEFAULT_PFP = 'default';
 
@@ -23,6 +17,8 @@ const MONGO_ID_REGEX = /^[a-f0-9]{24}$/i;
 
 @Injectable()
 export class UsersService {
+    private readonly logger = new Logger('User');
+
     constructor(
         @InjectModel('User')
         private userModel: Model<UserDocument>,
@@ -46,7 +42,7 @@ export class UsersService {
         const inviter = await this.userModel.findOne({
             inviteCodes: input.inviteCode,
         });
-        if (!inviter) throw 'Invite code does not exist';
+        if (!inviter) throw new GraphQLError('Invite code does not exist');
 
         //setup the new user
         u.displayName = u.username = input.username;
@@ -64,7 +60,8 @@ export class UsersService {
                 $pull: { inviteCodes: input.inviteCode },
             });
         } catch (e) {
-            throw e;
+            this.logger.error({ msg: 'Error creating user', e });
+            throw new GraphQLError('Could not create user');
         }
         return u;
     }
@@ -80,17 +77,17 @@ export class UsersService {
 
     async updateOther(u: UpdateUserInput, as: UserRole) {
         if (!ALLOWED_TO_UPDATE_OTHER.includes(as))
-            throw 'You cannot update *other* users';
+            throw new GraphQLError('You cannot update *other* users');
 
-        if (!u.id) throw 'Id not provided';
+        if (!u.id) throw new GraphQLError('Id not provided');
 
         const them = await this.userModel.findById(u.id);
 
-        if (!them) throw 'Invalid ID';
+        if (!them) throw new GraphQLError('Invalid ID');
 
         if (ALLOWED_TO_UPDATE_OTHER.includes(them.role)) {
             if (them.role == as || them.role == UserRole.GOD)
-                throw 'You cannot update *this* user';
+                throw new GraphQLError('You cannot update *this* user');
         }
 
         return await this.trustedUpate(u);
@@ -99,9 +96,9 @@ export class UsersService {
     async updateSelf(u: UpdateUserInput, self: UserDocument) {
         u.id = self._id;
         if (u.password || u.email) {
-            if (!u.oldPassword) throw 'Missing old password';
+            if (!u.oldPassword) throw new GraphQLError('Missing old password');
             if (!compare(u.oldPassword, self.passwordHash)) {
-                throw 'Incorrect password';
+                throw new GraphQLError('Incorrect password');
             }
         }
 
@@ -143,12 +140,14 @@ export class UsersService {
     }
 
     async setRole(userId: string, to: UserRole, as: UserRole) {
-        if (roleCompare(as, to) <= 0) throw 'You cannot give out this role';
+        if (roleCompare(as, to) <= 0)
+            throw new GraphQLError('You cannot give out this role');
 
         const u = await this.userModel.findById(userId);
-        if (!u) throw 'User does not exist';
+        if (!u) throw new GraphQLError('User does not exist');
 
-        if (roleCompare(as, u.role) <= 0) throw 'You cannot manage this user';
+        if (roleCompare(as, u.role) <= 0)
+            throw new GraphQLError('You cannot manage this user');
 
         u.role = to;
         await u.save();

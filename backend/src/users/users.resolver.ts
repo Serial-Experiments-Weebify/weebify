@@ -8,6 +8,7 @@ import { UpdateUserInput } from './dto/update-user.input';
 import { Roles } from 'src/auth/roles/role.decorator';
 import { roleCompare, UserRole } from './enums/UserRole.enum';
 import { UserDocument } from './entities/user.entity';
+import { GraphQLError } from 'graphql';
 
 @Resolver(() => User)
 export class UsersResolver {
@@ -58,7 +59,7 @@ export class UsersResolver {
         @Args('idOrUsername', { type: () => String }) idOrUsername: string,
     ) {
         const u = await this.usersService.findOne(idOrUsername);
-        if (!u) throw 'User not found';
+        if (!u) throw new GraphQLError('User not found');
         return new User(u, roleCompare(user.role, UserRole.ADMIN) >= 0); //show emails to admins and higher
     }
 

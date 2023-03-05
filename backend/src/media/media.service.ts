@@ -1,33 +1,84 @@
 import { Injectable } from '@nestjs/common';
 import { CreateMediaInput } from './dto/create-media.input';
 import { UpdateMediaInput } from './dto/update-media.input';
-import { Media, MediaDocument } from './entities/media.entity';
+import {
+    Media,
+    MediaDocument,
+    MovieMediaDocument,
+    TVMediaDocument,
+} from './entities/media.entity';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { MediaKind } from './enums/mediaKind.enum';
+import { v4 as uuid } from 'uuid';
+import { GraphQLError } from 'graphql';
+import { isMongoId } from 'class-validator';
 
 @Injectable()
 export class MediaService {
     constructor(
-        @InjectModel(Media.name) protected mediaModel: Model<MediaDocument>,
+        @InjectModel(Media.name)
+        protected mediaModel: Model<MediaDocument>,
+        @InjectModel('tvmedia')
+        protected tvMediaModel: Model<TVMediaDocument>,
+        @InjectModel('moviemedia')
+        protected movieMediaModel: Model<MovieMediaDocument>,
     ) {}
 
-    create(createMediaInput: CreateMediaInput) {
-        return 'This action adds a new media';
+    async create(createMediaInput: CreateMediaInput) {
+        let m: MediaDocument;
+        switch (createMediaInput.kind) {
+            case MediaKind.MOVIE: {
+                m = new this.movieMediaModel({
+                    ...createMediaInput,
+                    mediaId: null,
+                    coverColor: '#888888',
+                });
+                break;
+            }
+            case MediaKind.TV: {
+                m = new this.tvMediaModel({
+                    ...createMediaInput,
+                    episodes: [],
+                    coverColor: '#888888',
+                });
+                break;
+            }
+        }
+        await m.save();
+        return m.id as string;
     }
 
     findAll() {
         return `This action returns all media`;
     }
 
-    findOne(id: number) {
-        return `This action returns a #${id} media`;
+    async findOne(id: string) {
+        return await this.mediaModel.findById(id);
     }
 
-    update(id: number, updateMediaInput: UpdateMediaInput) {
-        return `This action updates a #${id} media`;
+    async update(id: string, updateMediaInput: UpdateMediaInput) {
+        if (!isMongoId(id)) throw new GraphQLError('Not a mongo ID');
+        return await this.mediaModel.findByIdAndUpdate(id, {
+            $set: updateMediaInput,
+        });
     }
 
-    remove(id: number) {
-        return `This action removes a #${id} media`;
+    async remove(id: string) {
+        if (!isMongoId(id)) throw new GraphQLError('Not a mongo ID');
+        return await this.mediaModel.findByIdAndDelete(id);
+    }
+
+    async updateCover(id: string) {
+        if (!isMongoId(id)) throw new GraphQLError('Not a mongo ID');
+        const key = uuid();
+
+        const doc = await this.mediaModel.findByIdAndUpdate(id, {
+            $set: { setCoverToken: key },
+        });
+
+        if (!doc) throw new GraphQLError('Invalid ID');
+
+        return key;
     }
 }

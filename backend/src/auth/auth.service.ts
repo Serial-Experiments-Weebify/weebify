@@ -5,6 +5,7 @@ import { Model } from 'mongoose';
 import { User, UserDocument } from 'src/users/entities/user.entity';
 import { LoginInput } from './dto/login.input';
 import { JwtService } from '@nestjs/jwt';
+import { GraphQLError } from 'graphql';
 
 /*
     Service for handling authentication
@@ -20,10 +21,10 @@ export class AuthService {
 
     async login(input: LoginInput): Promise<{ user: User; token: string }> {
         const user = await this.userModel.findOne({ username: input.username });
-        if (!user) throw 'User does not exist';
+        if (!user) throw new GraphQLError('Incorrect password or username.');
 
         if (!(await compare(input.password, user.passwordHash))) {
-            throw 'Incorrect password';
+            throw new GraphQLError('Incorrect password or username.');
         }
 
         const token = this.jwt.sign({ sub: user.id }, { expiresIn: '30d' });

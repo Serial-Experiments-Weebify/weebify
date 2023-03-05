@@ -1,4 +1,5 @@
 import sharp from "sharp";
+import getColors from "get-image-colors";
 
 const ALLOW_ANIMATED = true;
 
@@ -51,17 +52,35 @@ export class WeebifyImage {
             .toBuffer();
     }
 
+    public async getColor(saturationBased?: boolean): Promise<string> {
+        //get low effort png buffer
+        const b = await this.img.png({ effort: 5 }).toBuffer();
+        const colors = await getColors(b, { count: 3, type: "image/png" });
+
+        if (saturationBased) {
+            //sort so that the most satureated color is first
+            colors.sort((a, b) => b.hsv()[1] - a.hsv()[1]);
+        }
+
+        return colors[0].hex();
+    }
+
+    public get currentRatio() {
+        if (!this.valid || !this.meta.width || !this.meta.height)
+            throw "Invalid image";
+        return this.meta.width / this.meta.height;
+    }
+
     public toAspectRatio(targetRatio: number) {
         if (!this.valid || !this.meta.width || !this.meta.height)
             throw "Invalid image";
-        const currentRatio = this.meta.width / this.meta.height;
         let dW = 0,
             dH = 0;
 
-        if (currentRatio == targetRatio) {
+        if (this.currentRatio == targetRatio) {
             //ratio is the same
             return;
-        } else if (targetRatio > currentRatio) {
+        } else if (targetRatio > this.currentRatio) {
             // target is wider
             dW = this.meta.width;
             dH = Math.round((1 / targetRatio) * dW);

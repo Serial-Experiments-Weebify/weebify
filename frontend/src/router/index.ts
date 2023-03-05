@@ -6,6 +6,9 @@ import IndexView from '@/views/Index.vue';
 import LoginView from '@/views/Login.vue';
 import SignUpView from '@/views/SignUp.vue';
 import SearchView from '@/views/Search.vue';
+import BrowseView from '@/views/Browse.vue';
+import MediaView from '@/views/Media.vue';
+
 import { useAuthStore } from '@/stores/auth';
 import { useNotificationStore } from '@/stores/notifications';
 
@@ -65,6 +68,23 @@ const router = createRouter({
             path: '/search',
             name: 'search',
             component: SearchView,
+            meta: {
+                auth: AuthState.LoggedIn,
+            },
+        },
+        {
+            path: '/browse',
+            name: 'browse',
+            component: BrowseView,
+            meta: {
+                auth: AuthState.LoggedIn,
+            },
+        },
+        {
+            path: '/m/:id',
+            name: 'media',
+            props: true,
+            component: MediaView,
             meta: {
                 auth: AuthState.LoggedIn,
             },

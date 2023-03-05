@@ -36,14 +36,45 @@ enum UserRole {
   USER
 }
 
+type Episode {
+  episodeNumber: Float!
+  extra: String!
+  title: String!
+  mediaId: String!
+  episodeStatus: String!
+}
+
 type Media {
-  """Example field (placeholder)"""
-  exampleField: Int!
+  id: String!
+  title: String!
+  altTitles: [String!]!
+  description: String!
+  anilistId: String
+  genres: [String!]!
+  kind: MediaKind!
+  year: Int!
+  cover: String
+  coverColor: String!
+  status: MediaStatus!
+  episodes: [Episode!]
+  mediaId: String
+}
+
+enum MediaKind {
+  TV
+  MOVIE
+}
+
+enum MediaStatus {
+  Upcoming
+  Airing
+  Finished
 }
 
 type Query {
   me: User
-  media(id: Int!): Media!
+  mediaById(id: String!): Media!
+  media: [Media!]!
   users: [User!]!
   user(idOrUsername: String!): User!
   searchUsers(query: String!, from: Int, limit: Int): [User!]!
@@ -51,10 +82,10 @@ type Query {
 
 type Mutation {
   login(loginInput: LoginInput!): String!
-  createMedia(createMediaInput: CreateMediaInput!): Media!
-  updateMedia(updateMediaInput: UpdateMediaInput!): Media!
-  removeMedia(id: Int!): Media!
-  linkMedia: Boolean!
+  createMedia(createMediaInput: CreateMediaInput!): String!
+  updateMedia(id: String!, updateMediaInput: UpdateMediaInput!): String!
+  updateMediaCover(id: String!): String!
+  removeMedia(id: String!): Boolean!
   signUp(createUserInput: CreateUserInput!): User!
   generateInviteCode(id: String): String!
   updateUser(updateUserInput: UpdateUserInput!): User!
@@ -69,14 +100,24 @@ input LoginInput {
 }
 
 input CreateMediaInput {
-  """Example field (placeholder)"""
-  exampleField: Int!
+  title: String!
+  altTitles: [String!]!
+  description: String!
+  anilistId: String
+  genres: [String!]!
+  kind: String!
+  year: Int!
+  status: MediaStatus!
 }
 
 input UpdateMediaInput {
-  """Example field (placeholder)"""
-  exampleField: Int
-  id: Int!
+  title: String
+  altTitles: [String!]
+  description: String
+  anilistId: String
+  genres: [String!]
+  year: Int
+  status: MediaStatus
 }
 
 input CreateUserInput {

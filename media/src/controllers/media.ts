@@ -8,13 +8,15 @@ import { UserDocument } from "../user/user.model";
 import { S3Service } from "../services/s3.service";
 import { AuthenticateUserByPfpToken } from "../user/pfpAuth.middleware";
 import { WeebifyImage } from "../util/WeebifyImage";
+import { AuthenticateBySetCoverToken } from "../media/setCoverAuth";
+import { MediaDocument } from "../media/media.model";
 
 const s3 = Container.get(S3Service);
 
 const upload = multer({
     storage: memoryStorage(),
     limits: {
-        fileSize: 10 << 20, // 10 MiB
+        fileSize: 20 << 20, // 10 MiB
         files: 1,
     },
 });
@@ -66,7 +68,7 @@ media.post(
                     ))(),
             ];
 
-            await await Promise.all(uploads);
+            await Promise.all(uploads);
 
             user.pfpToken = undefined;
             user.pfp = key;
@@ -77,6 +79,70 @@ media.post(
             return res.status(500).send({ error: "Image processing failed" });
         } finally {
             pfp.destroy();
+        }
+    }
+);
+
+media.post(
+    "/cover",
+    AuthenticateBySetCoverToken,
+    upload.single("cover"),
+    async (req, res) => {
+        //@ts-ignore
+        const media: MediaDocument = req.media;
+        const file = req.file?.buffer;
+
+        if (!file || !media)
+            return res.status(400).send({ error: "Bad request" });
+
+        const cover = new WeebifyImage(file);
+
+        if (!(await cover.validate(128, 4096)))
+            return res.status(400).send({
+                error: "Image must be at least 128x128 and at most 4096x4096",
+            });
+
+        try {
+            const key = uuid();
+            console.log(`Uploading new cover ${key} for ${media.id}`);
+
+            //allow for some error
+            if (cover.currentRatio > 0.76 || cover.currentRatio < 0.56)
+                cover.toAspectRatio(0.66);
+
+            const uploads = [
+                (async () =>
+                    s3.uploadBuffer(
+                        "cover",
+                        `${key}/full.webp`,
+                        await cover.export()
+                    ))(),
+                (async () =>
+                    s3.uploadBuffer(
+                        "cover",
+                        `${key}/thumb.webp`,
+                        await cover.getImageWithMaxHeight(300)
+                    ))(),
+            ];
+
+            await Promise.all(uploads);
+
+            try {
+                media.coverColor = await cover.getColor();
+            } catch {
+                console.error("Error getting image color");
+            }
+
+            media.setCoverToken = undefined;
+            media.cover = key;
+            await media.save();
+
+            return res.status(200).send({ error: null, key });
+        } catch (e) {
+            console.error(e);
+            return res.status(500).send({ error: "Image processing failed" });
+        } finally {
+            cover.destroy();
         }
     }
 );

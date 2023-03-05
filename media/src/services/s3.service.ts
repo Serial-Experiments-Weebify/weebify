@@ -3,7 +3,6 @@ import { ConfigService } from "./config.service";
 
 import { Client } from "minio";
 
-
 @Service()
 export class S3Service {
     protected s3c: Client;
@@ -22,21 +21,25 @@ export class S3Service {
     }
 
     protected async bucketsPresent(buckets: string[]) {
-        const bucketsAvailable = (await this.s3c.listBuckets()).map(x => x.name);
-        const missingBuckets = buckets.filter(x => !bucketsAvailable.includes(x));
+        const bucketsAvailable = (await this.s3c.listBuckets()).map(
+            (x) => x.name
+        );
+        const missingBuckets = buckets.filter(
+            (x) => !bucketsAvailable.includes(x)
+        );
 
         if (missingBuckets.length == 0) {
-            console.log('All required buckets present');
+            console.log("All required buckets present");
             return true;
         } else {
-            console.error('Missing the following buckets:');
+            console.error("Missing the following buckets:");
             console.error(missingBuckets);
             return false;
         }
     }
 
     public async verify() {
-        return await this.bucketsPresent(['pfp', 'media']);
+        return await this.bucketsPresent(["pfp", "media", "cover"]);
     }
 
     public async uploadBuffer(bucket: string, key: string, buffer: Buffer) {

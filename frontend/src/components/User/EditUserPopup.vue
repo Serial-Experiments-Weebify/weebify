@@ -340,7 +340,6 @@ onMounted(() => {
         <h4>Update profile picture</h4>
         <GetFile
             :enabled="!pfpLoading"
-            accept=".jpg, .jpeg, .png, .webp, .avif, .gif, .jxl"
             :formats="['jpg', 'jpeg', 'png', 'webp', 'avif', 'gif', 'jxl']"
             :max-size-mib="8"
             @file="setPfp"

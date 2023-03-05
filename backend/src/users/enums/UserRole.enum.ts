@@ -1,3 +1,5 @@
+import { registerEnumType } from '@nestjs/graphql';
+
 export enum UserRole {
     GOD = 'god',
     ADMIN = 'admin',
@@ -22,3 +24,5 @@ const ROLE_WEIGHT: Record<UserRole, number> = {
 export function roleCompare(a: UserRole, b: UserRole) {
     return ROLE_WEIGHT[a] - ROLE_WEIGHT[b];
 }
+
+registerEnumType(UserRole, { name: 'UserRole' });
