@@ -86,7 +86,7 @@ export class WeebifyImage {
             dH = Math.round((1 / targetRatio) * dW);
         } else {
             // target is narrower
-            dH = this.meta.height;
+            dH = this.meta.pageHeight ?? this.meta.height;
             dW = makeEven(targetRatio * dH);
         }
 
@@ -101,7 +101,8 @@ export class WeebifyImage {
         if (!this.valid || !this.meta.width || !this.meta.height)
             throw "Invalid image";
 
-        const scalingFactor = newHeight / this.meta.height;
+        const scalingFactor =
+            newHeight / (this.meta.pageHeight ?? this.meta.height);
 
         if (scalingFactor > 1) return this.export();
 
