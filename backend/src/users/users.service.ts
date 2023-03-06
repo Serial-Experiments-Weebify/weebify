@@ -26,15 +26,6 @@ export class UsersService {
         private connection: Connection,
     ) {}
 
-    /*
-        TODO: USE TRANSACTION
-         mongo needs to be started as a replica set
-         couldnt figure out how to do it in docker
-
-         or not
-
-         might not need em
-    */
     async create(input: CreateUserInput) {
         const u = new this.userModel();
 

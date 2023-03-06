@@ -1,19 +1,19 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue';
+import { ref, onMounted } from 'vue';
 
 import TextInput from '@/components/Forms/TextInput.vue';
 import TextareaInput from '@/components/Forms/TextareaInput.vue';
-import GetFile from '@/components/Forms/GetFile.vue';
 import { useApolloClient } from '@vue/apollo-composable';
 import { useNotificationStore } from '@/stores/notifications';
-import { useAuthStore } from '@/stores/auth';
 import { gql } from '@/_gql';
-import { MediaKind, MediaStatus, type MediaPageQuery } from '@/_gql/graphql';
+import { MediaKind, MediaStatus } from '@/_gql/graphql';
 import StringListEditorVue from '@/components/Forms/StringListEditor.vue';
 import NumberInput from '../Forms/NumberInput.vue';
+import { useRouter } from 'vue-router';
 
 const apollo = useApolloClient();
 const notify = useNotificationStore();
+const router = useRouter();
 
 function emptyAsNull(a: string | null | undefined) {
     if (typeof a !== 'string') return null;
@@ -21,15 +21,6 @@ function emptyAsNull(a: string | null | undefined) {
     if (trimmed.length == 0) return null;
     return trimmed;
 }
-
-const props = defineProps<{
-    id: string;
-    currentData: MediaPageQuery['mediaById'] | undefined;
-}>();
-
-const emit = defineEmits<{
-    (e: 'updated'): void;
-}>();
 
 const state = ref({
     title: '',
@@ -42,22 +33,21 @@ const state = ref({
     altTitles: [] as string[],
 });
 
-const UPDATE_MEDIA_MUT = gql(`
-    mutation updateMedia($id: String!, $umi: UpdateMediaInput!) {
-        updateMedia(id: $id, updateMediaInput: $umi)
+const CREATE_MEDIA_MUT = gql(`
+    mutation CreateMedia($cmi: CreateMediaInput!) {
+        createMedia(createMediaInput: $cmi)
     }
 `);
 
 const loading = ref(false);
 
-async function updateMedia() {
+async function createMedia() {
     loading.value = true;
     try {
         const { data, errors } = await apollo.client.mutate({
-            mutation: UPDATE_MEDIA_MUT,
+            mutation: CREATE_MEDIA_MUT,
             variables: {
-                id: props.id,
-                umi: {
+                cmi: {
                     kind: state.value.kind,
                     title: state.value.title,
                     altTitles: state.value.altTitles,
@@ -74,101 +64,28 @@ async function updateMedia() {
             //show error
             notify.addNotification(
                 'error',
-                errors[0].message ?? `Unknow error creating media!`
+                errors[0].message ?? `Unknown error creating media!`
             );
-        } else if (data?.updateMedia) {
-            emit('updated');
+        } else if (data?.createMedia) {
             notify.addNotification(
                 'info',
-                `Sucessfully updated ${state.value.title}`
+                `Sucessfully created ${state.value.title}`
             );
+            const id = data?.createMedia as string;
+            router.push({ name: 'media', params: { id } });
         }
     } catch {
-        notify.addNotification('error', `Unknow error creating media!`);
+        notify.addNotification('error', `Unknown error creating media!`);
     } finally {
         loading.value = false;
     }
 }
 
-const coverLoading = ref(false);
-const UPDATE_COVER_MUT = gql(`
-    mutation UpdateMediaCover($id: String!) {
-        updateMediaCover(id: $id)
-    }
-`);
-
-async function setCover(file: File) {
-    coverLoading.value = true;
-
-    //obtain update token
-    const { data, errors } = await apollo.client.mutate({
-        mutation: UPDATE_COVER_MUT,
-        variables: {
-            id: props.id,
-        },
-    });
-
-    if (errors) {
-        notify.addNotification('error', errors[0].message ?? 'Unknown error');
-        coverLoading.value = false;
-        return;
-    }
-    // upload pfp
-    const token = data?.updateMediaCover as string;
-    try {
-        const fd = new FormData();
-        fd.append('cover', file);
-        const f = await fetch('/media/cover', {
-            method: 'post',
-            headers: {
-                authorization: `Bearer ${token}`,
-            },
-            body: fd,
-        });
-        if (f.status >= 200 && f.status < 300) {
-            notify.addNotification('info', 'Updated media cover');
-            emit('updated');
-        } else {
-            const r = await f.json();
-            notify.addNotification(
-                'error',
-                r.error ?? 'Error updating media cover'
-            );
-        }
-    } catch {
-        notify.addNotification('error', 'Error updating media cover');
-    } finally {
-        coverLoading.value = false;
-    }
-}
-
-onMounted(() => {
-    state.value = {
-        altTitles: props.currentData?.altTitles ?? [],
-        anilistId: props.currentData?.anilistId ?? '',
-        description: props.currentData?.description ?? '',
-        genres: props.currentData?.genres ?? [],
-        kind: props.currentData?.kind ?? MediaKind.Tv,
-        status: props.currentData?.status ?? MediaStatus.Finished,
-        title: props.currentData?.title ?? '',
-        year: props.currentData?.year ?? 1999,
-    };
-});
+onMounted(() => {});
 </script>
 
 <template>
-    <section>
-        <h5>Set cover image</h5>
-        <GetFile
-            :enabled="!coverLoading"
-            :max-size-mib="20"
-            :formats="['jpg', 'jpeg', 'png', 'webp', 'avif', 'gif', 'jxl']"
-            @file="setCover"
-        >
-            Images, 20MiB max. You know what you're doing.
-        </GetFile>
-    </section>
-    <form @submit.prevent="updateMedia">
+    <form @submit.prevent="createMedia">
         <TextInput
             type="text"
             name="title"
@@ -177,13 +94,7 @@ onMounted(() => {
             label="Title: "
         />
 
-        <h5>Media kind:</h5>
-        <select class="w-select" v-model="state.kind" required>
-            <option :value="MediaKind.Tv">TV (Episodes)</option>
-            <option :value="MediaKind.Movie">Movie (Single)</option>
-        </select>
-
-        <h5>Media status:</h5>
+        <h5>Episode Status:</h5>
         <select class="w-select" v-model="state.status" required>
             <option :value="MediaStatus.Upcoming">Upcoming</option>
             <option :value="MediaStatus.Airing">Airing</option>
@@ -194,37 +105,24 @@ onMounted(() => {
             v-model:value="state.year"
             required
             name="year"
-            label="Year of release:"
-            :min="1970"
-            :max="2050"
+            label="Episode:"
+            :min="0"
+            :max="10000"
             :step="1"
         />
 
-        <h5>Alt titles:</h5>
-        <StringListEditorVue v-model:list="state.altTitles" />
-        <TextareaInput
-            name="Description"
-            v-model:value="state.description"
-            required
-            label="Description: "
-        />
         <TextInput
             type="text"
             name="anilist-id"
             v-model:value="state.anilistId"
-            label="Anilist ID:"
+            label="Extra label:"
         />
-        <h5>Genres:</h5>
-        <StringListEditorVue v-model:list="state.genres" />
 
         <button class="w-big-button" :disabled="loading">Create</button>
     </form>
 </template>
 
 <style scoped lang="less">
-section {
-    margin-bottom: 10px;
-}
 h5 {
     font-size: 18px;
     line-height: 22px;

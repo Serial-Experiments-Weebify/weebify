@@ -1,18 +1,23 @@
-import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, Int } from '@nestjs/graphql';
 import { MediaService } from './media.service';
-import { Media } from './dto/media.out';
-import { CreateMediaInput } from './dto/create-media.input';
-import { UpdateMediaInput } from './dto/update-media.input';
+import { Roles } from 'src/auth/roles/role.decorator';
 import { AuthOnlyGuard } from 'src/auth/auth.guard';
 import { UseGuards } from '@nestjs/common';
-import { Roles } from 'src/auth/roles/role.decorator';
 import { UserRole } from 'src/users/enums/UserRole.enum';
 
+import { Media } from './dto/media.out';
+import { Episode } from './dto/episode.out';
+import { AddEpisode } from './dto/add-episode.input';
+import { UpdateEpisode } from './dto/update-episode.input';
+import { UpdateMediaInput } from './dto/update-media.input';
+import { CreateMediaInput } from './dto/create-media.input';
+import { EpisodeStatus } from './enums/episodeStatus.enum';
+
+@UseGuards(AuthOnlyGuard)
 @Resolver(() => Media)
 export class MediaResolver {
-    constructor(private readonly mediaService: MediaService) {}
+    constructor(private readonly mediaService: MediaService) { }
 
-    @UseGuards(AuthOnlyGuard)
     @Mutation(() => String)
     @Roles(UserRole.GOD, UserRole.ADMIN)
     async createMedia(
@@ -31,7 +36,6 @@ export class MediaResolver {
         return id;
     }
 
-    @UseGuards(AuthOnlyGuard)
     @Mutation(() => String)
     @Roles(UserRole.GOD, UserRole.ADMIN)
     async updateMediaCover(@Args('id') id: string) {
@@ -46,12 +50,54 @@ export class MediaResolver {
     }
 
     @Query(() => Media, { name: 'mediaById' })
-    findOne(@Args('id', { type: () => String }) id: string) {
-        return this.mediaService.findOne(id);
+    async findOne(@Args('id', { type: () => String }) id: string) {
+        return await this.mediaService.findOne(id);
     }
 
     @Query(() => [Media], { name: 'media' })
     findAll() {
         return this.mediaService.findAll();
+    }
+
+    @Mutation(() => Media)
+    @Roles(UserRole.GOD, UserRole.ADMIN)
+    async addEpisode(
+        @Args('mediaId', { type: () => String }) mediaId: string,
+        @Args('episode', { type: () => AddEpisode }) episode: AddEpisode,
+    ) {
+        return await this.mediaService.addEpisode(mediaId, episode);
+    }
+
+    @Mutation(() => Media)
+    @Roles(UserRole.GOD, UserRole.ADMIN)
+    async quickFill(
+        @Args('mediaId', { type: () => String }) mediaId: string,
+        @Args('count', { type: () => Int }) count: number,
+        @Args('status', { type: () => EpisodeStatus }) status: EpisodeStatus,
+    ) {
+        return await this.mediaService.quickFill(mediaId, count, status);
+    }
+
+    @Mutation(() => Boolean)
+    @Roles(UserRole.GOD, UserRole.ADMIN)
+    async removeEpisode(
+        @Args('mediaId', { type: () => String }) mediaId: string,
+        @Args('episodeId', { type: () => String }) episodeId: string,
+    ) {
+        return await this.mediaService.removeEpisode(mediaId, episodeId);
+    }
+
+    @Mutation(() => Episode)
+    @Roles(UserRole.GOD, UserRole.ADMIN)
+    async updateEpisode(
+        @Args('mediaId', { type: () => String }) mediaId: string,
+        @Args('episodeId', { type: () => String }) episodeId: string,
+        @Args('episode', { type: () => UpdateEpisode }) episode: UpdateEpisode,
+    ) {
+        return await this.mediaService.updateEpisode(
+            mediaId,
+            episodeId,
+            episode,
+        );
     }
 }

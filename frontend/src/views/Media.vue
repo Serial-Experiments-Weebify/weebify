@@ -2,12 +2,15 @@
 import Popup from '@/components/Popup.vue';
 import { useAuthStore } from '@/stores/auth';
 import { gql } from '@/_gql';
-import { UserRole, MediaKind } from '@/_gql/graphql';
+import { UserRole, MediaKind, type Episode } from '@/_gql/graphql';
 import { useApolloClient, useQuery } from '@vue/apollo-composable';
 import { computed, ref } from 'vue';
 import EditMedia from '@/components/Media/EditMedia.vue';
 import { useNotificationStore } from '@/stores/notifications';
 import { useRouter } from 'vue-router';
+import QuickfillEpisodes from '@/components/Media/QuickfillEpisodes.vue';
+import AddEpisode from '@/components/Media/AddEpisode.vue';
+import EditEpisode from '@/components/Media/EditEpisode.vue';
 
 const auth = useAuthStore();
 const apollo = useApolloClient();
@@ -29,6 +32,7 @@ query MediaPage($id: String!) {
     coverColor
     status
     episodes {
+      id
       episodeNumber
       extra
       title
@@ -80,17 +84,61 @@ async function deleteMedia() {
             },
         });
         if (errors) {
-            //show error
             notify.addNotification(
                 'error',
-                errors[0].message ?? `Unknow error removing media!`
+                errors[0].message ?? `Unknown error removing media!`
             );
         } else if (data?.removeMedia) {
             notify.addNotification('info', `Sucessfully removed media`);
             router.push({ name: 'browse' });
         }
     } catch {
-        notify.addNotification('error', `Unknow error removing media!`);
+        notify.addNotification('error', `Unknown error removing media!`);
+    } finally {
+        loading.value = false;
+    }
+}
+
+type Ep = Omit<Episode, 'mediaId'>;
+
+function showEditEpisode(e: Ep) {
+    selectedEpisode.value = e;
+    showEpisodeEdit.value = true;
+}
+
+function showDeletePrompt(e: Ep) {
+    selectedEpisode.value = e;
+    showDeleteEpisode.value = true;
+}
+
+const DELETE_EPISODE_MUT = gql(`
+    mutation deleteEpisode($mid: String!, $eid: String!) {
+        removeEpisode(mediaId: $mid, episodeId: $eid)
+    }
+`);
+
+async function deleteEpisode() {
+    deleting.value = true;
+    try {
+        const { data, errors } = await apollo.client.mutate({
+            mutation: DELETE_EPISODE_MUT,
+            variables: {
+                mid: media.value?.id ?? '',
+                eid: selectedEpisode.value?.id ?? '',
+            },
+        });
+        if (errors) {
+            notify.addNotification(
+                'error',
+                errors[0].message ?? `Unknown error removing episode!`
+            );
+        } else if (data?.removeEpisode) {
+            notify.addNotification('info', `Sucessfully removed episode`);
+            showDeleteEpisode.value = false;
+            refetch();
+        }
+    } catch {
+        notify.addNotification('error', `Unknown error removing episode!`);
     } finally {
         loading.value = false;
     }
@@ -99,6 +147,11 @@ async function deleteMedia() {
 const showBigDescription = ref(false);
 const confirmDelete = ref(false);
 const showEdit = ref(false);
+const showNewEpisode = ref(false);
+const showEpisodeEdit = ref(false);
+const showQuickfill = ref(false);
+const showDeleteEpisode = ref(false);
+const selectedEpisode = ref<Ep | null>(null);
 </script>
 
 <template>
@@ -190,22 +243,121 @@ const showEdit = ref(false);
             </div>
         </div>
 
-        <div class="episodes" v-if="media?.kind === MediaKind.Tv">
-            <div class="season">
-                <!-- <episode
-                    v-for="(ep, index) in season.episodes"
-                    :key="index"
-                    :season="ep.season"
-                    :episode="ep.episode"
-                    :extra="ep.extraName"
-                    :title="ep.title ?? cleanTitle"
-                    :length="ep.length"
-                    :progress="ep.progress"
-                /> -->
+        <div class="media-list" v-if="media?.kind === MediaKind.Tv">
+            <div class="episode-buttons" v-if="canEdit">
+                <span>Episode tools: </span>
+                <button
+                    class="w-medium-button"
+                    @click="() => (showNewEpisode = true)"
+                >
+                    Add Episode
+                </button>
+                <Popup title="Add episode" v-model:show="showNewEpisode">
+                    <AddEpisode
+                        :mId="media.id"
+                        @updated="
+                            () => {
+                                refetch();
+                                showNewEpisode = false;
+                            }
+                        "
+                    />
+                </Popup>
+                <button
+                    class="w-medium-button w-button-green"
+                    @click="() => (showQuickfill = true)"
+                >
+                    Quickfill
+                </button>
+
+                <Popup title="Quickfill" v-model:show="showQuickfill">
+                    <QuickfillEpisodes
+                        :id="media.id"
+                        @updated="
+                            () => {
+                                showQuickfill = false;
+                                refetch();
+                            }
+                        "
+                    />
+                </Popup>
+            </div>
+            <div class="episodes">
+                <Popup v-model:show="showEpisodeEdit" title="Edit episode">
+                    <EditEpisode
+                        :mId="media.id"
+                        :episode="selectedEpisode!"
+                        @updated="
+                            () => {
+                                refetch();
+                                showEpisodeEdit = false;
+                            }
+                        "
+                    />
+                </Popup>
+
+                <Popup title="Confirm delete" v-model:show="showDeleteEpisode">
+                    <p>
+                        Are you sure you want to delete <br />
+                        Episode {{ selectedEpisode?.episodeNumber
+                        }}{{ selectedEpisode?.extra ?? '' }} -
+                        {{ selectedEpisode?.title }} ?
+                    </p>
+                    <button
+                        class="w-big-button w-button-green mr10"
+                        :disabled="deleting"
+                        @click="deleteEpisode"
+                    >
+                        Yes
+                    </button>
+                    <button
+                        class="w-big-button w-button-red"
+                        :disabled="deleting"
+                        @click="() => (showDeleteEpisode = false)"
+                    >
+                        No
+                    </button>
+                </Popup>
+
+                <RouterLink
+                    :to="{ name: 'home' }"
+                    class="episode"
+                    v-for="episode in media.episodes"
+                >
+                    <span
+                        class="status"
+                        :class="episode.episodeStatus.toLowerCase()"
+                    >
+                        {{ episode.episodeStatus }}
+                    </span>
+                    <span
+                        >Episode {{ episode.episodeNumber
+                        }}{{ episode.extra ?? '' }} - {{ episode.title }}</span
+                    >
+                    <div style="flex: 1"></div>
+                    <template v-if="canEdit">
+                        <button
+                            class="w-medium-button w-button-blue"
+                            @click.prevent="() => showEditEpisode(episode)"
+                        >
+                            Edit
+                        </button>
+                        <button
+                            class="w-medium-button w-button-red"
+                            @click.prevent="() => showDeletePrompt(episode)"
+                        >
+                            Delete
+                        </button>
+                    </template>
+                </RouterLink>
             </div>
         </div>
-
-        <div class="movie" v-if="media?.kind === MediaKind.Tv"></div>
+        <div class="media-list" v-else-if="media?.kind === MediaKind.Movie">
+            Movie: (Tle pride se extra metadata hopefully)
+            <RouterLink :to="{ name: 'home' }" class="w-big-button">
+                Play
+            </RouterLink>
+        </div>
     </main>
 </template>
 
@@ -239,7 +391,7 @@ const showEdit = ref(false);
         right: 0;
         height: 50vh;
         background: linear-gradient(to bottom, #14131c00, #14131c),
-            /* hi */ url('../assets/cover.jpg');
+            url('../assets/cover.jpg');
         background-size: cover !important;
         background-position: center !important;
         filter: blur(@blur-size);
@@ -366,20 +518,75 @@ const showEdit = ref(false);
         }
     }
 }
-.episodes {
+.media-list {
     max-width: 150vh;
-    width: 100%;
-    display: grid;
-    grid-gap: 3em;
-    grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+    width: calc(100% - 100px);
     margin-bottom: 2rem;
     padding-top: 3em;
     padding: 1rem;
     margin: 1rem;
-    .season {
-        padding: 1em;
-        border-radius: 1em;
-        background-color: @c-mirage;
+    border-radius: 1em;
+    background-color: @c-mirage;
+    display: flex;
+    flex-direction: column;
+
+    a {
+        display: block;
+        width: fit-content;
+        margin: 10px;
+    }
+
+    .episode-buttons {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 1rem;
+        span {
+            font-weight: bold;
+        }
+        margin-bottom: 10px;
+    }
+    .episodes {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+
+        .episode {
+            text-decoration: none;
+            color: @c-snow;
+            display: flex;
+            gap: 10px;
+            margin: 0;
+            flex-direction: row;
+            align-items: center;
+            padding: 5px;
+            border-radius: 5px;
+            width: 100%;
+            box-sizing: border-box;
+            .status {
+                background-color: gray;
+                padding: 0.2rem 0.4rem;
+                border-radius: 5px;
+                font-weight: 500;
+                color: @c-oil;
+
+                &.aired {
+                    background-color: @c-algae;
+                }
+
+                &.upcoming {
+                    background-color: @c-cyan;
+                }
+            }
+
+            &:hover {
+                background-color: fade(@c-cyan, 70%) !important;
+            }
+
+            &:nth-child(odd) {
+                background-color: fade(@c-oil, 50%);
+            }
+        }
     }
 }
 

@@ -1,18 +1,17 @@
-import { ObjectType, Field } from '@nestjs/graphql';
+import { InputType, Field, Int } from '@nestjs/graphql';
 import { EpisodeStatus } from '../enums/episodeStatus.enum';
 
-@ObjectType()
-export class Episode {
-    @Field()
-    id: string;
-    @Field()
+@InputType()
+export class AddEpisode {
+    @Field(() => Int)
     episodeNumber: number;
+
     @Field(() => String, { nullable: true })
     extra?: string;
+
     @Field()
     title: string;
-    @Field()
-    mediaId: string;
+
     @Field(() => EpisodeStatus)
     episodeStatus: EpisodeStatus;
 }

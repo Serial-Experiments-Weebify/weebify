@@ -8,7 +8,7 @@ import { UserDocument } from 'src/users/entities/user.entity';
 
 @Resolver()
 export class AuthResolver {
-    constructor(private readonly auth: AuthService) { }
+    constructor(private readonly auth: AuthService) {}
 
     @UseGuards(AuthOnlyGuard)
     @Query(() => User, { nullable: true })

@@ -37,11 +37,17 @@ enum UserRole {
 }
 
 type Episode {
+  id: String!
   episodeNumber: Float!
-  extra: String!
+  extra: String
   title: String!
   mediaId: String!
-  episodeStatus: String!
+  episodeStatus: EpisodeStatus!
+}
+
+enum EpisodeStatus {
+  Upcoming
+  Aired
 }
 
 type Media {
@@ -86,6 +92,10 @@ type Mutation {
   updateMedia(id: String!, updateMediaInput: UpdateMediaInput!): String!
   updateMediaCover(id: String!): String!
   removeMedia(id: String!): Boolean!
+  addEpisode(mediaId: String!, episode: AddEpisode!): Media!
+  quickFill(mediaId: String!, count: Int!, status: EpisodeStatus!): Media!
+  removeEpisode(mediaId: String!, episodeId: String!): Boolean!
+  updateEpisode(mediaId: String!, episodeId: String!, episode: UpdateEpisode!): Episode!
   signUp(createUserInput: CreateUserInput!): User!
   generateInviteCode(id: String): String!
   updateUser(updateUserInput: UpdateUserInput!): User!
@@ -118,6 +128,20 @@ input UpdateMediaInput {
   genres: [String!]
   year: Int
   status: MediaStatus
+}
+
+input AddEpisode {
+  episodeNumber: Int!
+  extra: String
+  title: String!
+  episodeStatus: EpisodeStatus!
+}
+
+input UpdateEpisode {
+  episodeNumber: Int
+  extra: String
+  title: String
+  episodeStatus: EpisodeStatus
 }
 
 input CreateUserInput {

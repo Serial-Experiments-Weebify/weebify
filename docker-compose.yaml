@@ -1,47 +1,45 @@
 services:
-    mongo:
-        image: mongo:6
-        command: "mongod --bind_ip_all --config /etc/mongo/mongod.conf"
-        environment:
-            MONGO_INITDB_ROOT_USERNAME: root
-            MONGO_INITDB_DATABASE: weebify
-            MONGO_INITDB_ROOT_PASSWORD: root
-            PUID: 1000
-            PGID: 1000
-        volumes:
-            - mongo-data:/data/db
-            - ./mongo/mongod.conf:/etc/mongo/mongod.conf
-            - ./mongo/mongo.key:/etc/mongo.key:ro
-        ports:
-            - "27017:27017"
-        expose:
-            - 27017
-        restart: unless-stopped
-        healthcheck:
-            test: echo 'db.runCommand("ping").ok' | mongo mongodb1:27017/test --quiet
-            interval: 30s
-            timeout: 10s
-            retries: 3
-        networks:
-            - app
-    minio:
-        image: minio/minio
-        ports:
-            - "33300:9000"
-            - "33301:9001"
-        expose:
-            - 9000
-            - 9001
-        volumes:
-            - ./minio:/data
-        environment:
-            MINIO_ROOT_USER: weebifydev
-            MINIO_ROOT_PASSWORD: weebifydev
-        command: server --console-address ":9001" /data
+  mongo:
+    image: mongo:6
+    command: "mongod --bind_ip_all --config /etc/mongo/mongod.conf"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_DATABASE: weebify
+      MONGO_INITDB_ROOT_PASSWORD: root
+      PUID: 1000
+      PGID: 1000
+    volumes:
+      - mongo-data:/data/db
+      - ./mongo/mongod.conf:/etc/mongo/mongod.conf
+      - ./mongo/mongo.key:/etc/mongo.key:ro
+    ports:
+      - "27017:27017"
+    expose:
+      - 27017
+    restart: unless-stopped
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongo mongodb1:27017/test --quiet
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - app
+  minio:
+    image: minio/minio
+    ports:
+      - "33300:9000"
+      - "33301:9001"
+    expose:
+      - 9000
+      - 9001
+    volumes:
+      - ./minio:/data
+    environment:
+      MINIO_ROOT_USER: weebifydev
+      MINIO_ROOT_PASSWORD: weebifydev
+    command: server --console-address ":9001" /data
 
 networks:
-    app:
-
-
+  app:
 volumes:
-    mongo-data:
+  mongo-data:

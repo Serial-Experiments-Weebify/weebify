@@ -19,7 +19,7 @@ export class AuthOnlyGuard implements CanActivate {
 export class NoAuthGuard implements CanActivate {
     async canActivate(context: ExecutionContext) {
         const ctx = GqlExecutionContext.create(context);
-        const user: User | null = await ctx.getContext().user || null;
+        const user: User | null = (await ctx.getContext().user) || null;
         return user == null;
     }
 }

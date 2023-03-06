@@ -6,7 +6,6 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 
-
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { MediaModule } from './media/media.module';
@@ -20,16 +19,12 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     imports: [
         ConfigModule.forRoot({ isGlobal: true }),
         AuthModule,
-        // MongooseModule.forRootAsync(
-        //     // 'mongodb://root:root@localhost/?authMechanism=DEFAULT&replicaSet=rs0'
-        //     'mongodb://root:root@localhost:27017/weebify?authMechanism=DEFAULT&authSource=admin',
-        // ),
         MongooseModule.forRootAsync({
             imports: [ConfigModule],
             inject: [ConfigService],
             async useFactory(config: ConfigService) {
-                return { uri: await config.getOrThrow('DATABASE') }
-            }
+                return { uri: await config.getOrThrow('DATABASE') };
+            },
         }),
         GraphQLModule.forRootAsync<ApolloDriverConfig>({
             driver: ApolloDriver,
@@ -46,8 +41,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         MediaModule,
         UsersModule,
     ],
-    providers: [
-        { provide: APP_GUARD, useClass: RolesGuard, },
-    ],
+    providers: [{ provide: APP_GUARD, useClass: RolesGuard }],
 })
-export class AppModule { }
+export class AppModule {}
