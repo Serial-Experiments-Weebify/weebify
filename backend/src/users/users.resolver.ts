@@ -83,23 +83,18 @@ export class UsersResolver {
     }
 
     @UseGuards(AuthOnlyGuard)
-    @Query(() => [User])
-    async searchUsers(
-        @Args('query', { type: () => String }) query: string,
-        @Args('from', { type: () => Int, nullable: true }) from = 0,
-        @Args('limit', { type: () => Int, nullable: true }) limit = 10,
-    ) {
-        return (await this.usersService.search(query, from, limit)).map(
-            (x) => new User(x, false),
-        );
-    }
-
-    @UseGuards(AuthOnlyGuard)
     @Mutation(() => String)
     async updatePfp(
         @Context('user') user: UserDocument,
         @Args('id', { nullable: true }) id?: string,
     ) {
         return await this.usersService.createPfpToken(id ?? user.id);
+    }
+
+    @UseGuards(AuthOnlyGuard)
+    @Mutation(() => Boolean)
+    @Roles(UserRole.GOD, UserRole.ADMIN)
+    async rebuildUserSearch() {
+        return await this.usersService.rebuildSearch();
     }
 }

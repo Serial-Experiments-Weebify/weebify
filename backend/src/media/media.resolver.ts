@@ -16,7 +16,7 @@ import { EpisodeStatus } from './enums/episodeStatus.enum';
 @UseGuards(AuthOnlyGuard)
 @Resolver(() => Media)
 export class MediaResolver {
-    constructor(private readonly mediaService: MediaService) { }
+    constructor(private readonly mediaService: MediaService) {}
 
     @Mutation(() => String)
     @Roles(UserRole.GOD, UserRole.ADMIN)
@@ -99,5 +99,11 @@ export class MediaResolver {
             episodeId,
             episode,
         );
+    }
+
+    @Mutation(() => Boolean)
+    @Roles(UserRole.GOD, UserRole.ADMIN)
+    async rebuildMediaSearch() {
+        return await this.mediaService.rebuildSearch();
     }
 }

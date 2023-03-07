@@ -8,6 +8,8 @@ import { compare, hash } from 'bcrypt';
 import { UpdateUserInput } from './dto/update-user.input';
 import { v4 as uuid } from 'uuid';
 import { GraphQLError } from 'graphql';
+import { InjectMeiliSearch } from 'nestjs-meilisearch';
+import MeiliSearch from 'meilisearch';
 
 const DEFAULT_PFP = 'default';
 
@@ -24,6 +26,8 @@ export class UsersService {
         private userModel: Model<UserDocument>,
         @InjectConnection()
         private connection: Connection,
+        @InjectMeiliSearch()
+        private meiliSearch: MeiliSearch,
     ) {}
 
     async create(input: CreateUserInput) {
@@ -157,22 +161,30 @@ export class UsersService {
         return token;
     }
 
-    async search(query: string, from: number, limit: number) {
-        query = UsersService.escapeRegex(query);
-        return this.userModel.find(
+    async rebuildSearch() {
+        const t = await this.meiliSearch.createIndex('media', {
+            primaryKey: 'id',
+        });
+
+        await this.meiliSearch.waitForTask(t.taskUid);
+
+        const data = await this.userModel.aggregate([
             {
-                //TODO: remove the text index on user since it doesnt work
-                $or: [
-                    {
-                        displayName: { $regex: query, $options: 'i' },
-                    },
-                    {
-                        username: { $regex: query, $options: 'i' },
-                    },
-                ],
+                $project: {
+                    _id: false,
+                    id: '$_id',
+                    username: true,
+                    displayName: true,
+                    pfp: true,
+                },
             },
-            null,
-            { limit, skip: from },
-        ); //TODO: proper pagination?
+        ]);
+
+        const st = await this.meiliSearch
+            .index('users')
+            .addDocuments(data, { primaryKey: 'id' });
+
+        await this.meiliSearch.waitForTask(st.taskUid);
+        return true;
     }
 }

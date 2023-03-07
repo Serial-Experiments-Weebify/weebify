@@ -14,6 +14,7 @@ import { AuthService } from './auth/auth.service';
 import { RolesGuard } from './auth/roles/role.guard';
 import { authenticateUser } from './auth/auth.middleware';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { MeiliSearchModule } from 'nestjs-meilisearch';
 
 @Module({
     imports: [
@@ -37,6 +38,16 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
                 },
                 autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
             }),
+        }),
+        MeiliSearchModule.forRootAsync({
+            imports: [ConfigModule],
+            inject: [ConfigService],
+            async useFactory(config: ConfigService) {
+                return {
+                    host: config.getOrThrow('SEARCH_HOST'),
+                    apiKey: config.getOrThrow('SEARCH_KEY'),
+                };
+            },
         }),
         MediaModule,
         UsersModule,

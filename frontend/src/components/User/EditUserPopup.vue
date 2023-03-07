@@ -179,7 +179,7 @@ async function setPfp(file: File) {
     try {
         const fd = new FormData();
         fd.append('pfp', file);
-        const f = await fetch('/media/pfp', {
+        const f = await fetch('/api/media/pfp', {
             method: 'post',
             headers: {
                 authorization: `Bearer ${token}`,

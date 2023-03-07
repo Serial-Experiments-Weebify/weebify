@@ -1,23 +1,36 @@
 <script setup lang="ts">
-import UserIcon from '@/icons/UserIcon.vue';
-import { useAuthStore } from '@/stores/auth';
-import SearchIcon from '@/icons/SearchIcon.vue';
+import { ref, computed } from 'vue';
 import { RouterLink, RouterView, useRouter } from 'vue-router';
+
+import { UserRole } from '@/_gql/graphql';
+import { useAuthStore } from '@/stores/auth';
 import { useNotificationStore } from '@/stores/notifications';
-import Notification from '@/components/Notifications/Notification.vue';
-import DropDown from '@/components/DropDown.vue';
+
+import UserIcon from '@/icons/UserIcon.vue';
+import SearchIcon from '@/icons/SearchIcon.vue';
+import AddIcon from '@/icons/AddIcon.vue';
 import HomeIcon from '@/icons/HomeIcon.vue';
 import LogOutIcon from '@/icons/LogOutIcon.vue';
+
+import Popup from '@/components/Popup.vue';
+import DropDown from '@/components/DropDown.vue';
+import NewMedia from '@/components/Media/NewMedia.vue';
+import Notification from '@/components/Notifications/Notification.vue';
 
 const auth = useAuthStore();
 auth.init();
 const notif = useNotificationStore();
 const router = useRouter();
+const showNew = ref(false);
 
 function logout() {
     auth.logOut();
     router.push({ name: 'index' });
 }
+
+const canEdit = computed(
+    () => auth.me?.role === UserRole.Admin || auth.me?.role === UserRole.God
+);
 </script>
 
 <template>
@@ -43,7 +56,16 @@ function logout() {
             Weebify
         </RouterLink>
         <div :style="{ flex: 1 /* spacer */ }"></div>
-        <RouterLink class="nav-icon-link" to="/search" v-if="auth.loggedIn">
+
+        <button class="reset nav-icon-link" @click="() => (showNew = true)">
+            <AddIcon />
+        </button>
+
+        <RouterLink
+            class="nav-icon-link"
+            to="/search"
+            v-if="auth.loggedIn && canEdit"
+        >
             <SearchIcon class="transition-stroke" />
         </RouterLink>
 
@@ -85,12 +107,10 @@ function logout() {
             </template>
         </DropDown>
     </nav>
-    <!-- <router-view v-slot="{ Component }"> -->
-    <!-- <transition name="fade"> -->
-    <!-- <component :is="Component" :style="{ flex: 1 }" /> -->
-    <!-- </transition> -->
-    <!-- </router-view> -->
     <router-view :style="{ flex: 1 }" />
+    <Popup v-model:show="showNew" title="Add media">
+        <NewMedia />
+    </Popup>
 </template>
 
 <style lang="less">
@@ -148,6 +168,7 @@ function logout() {
             align-items: center;
             transition: color @t-subtle ease;
             font-size: 14px;
+            cursor: pointer;
 
             img {
                 width: 48px;

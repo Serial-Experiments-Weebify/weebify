@@ -6,15 +6,44 @@ import { Media, MediaSchema, TVMediaDocument } from './entities/media.entity';
 import { TvSchema } from './entities/tv.schema';
 import { MediaKind } from './enums/mediaKind.enum';
 import { MovieSchema } from './entities/movie.schema';
+import { MeiliSearchModule, MeiliSearchService } from 'nestjs-meilisearch';
 
 @Module({
     providers: [MediaResolver, MediaService],
     imports: [
         MongooseModule.forFeatureAsync([
             {
+                imports: [MeiliSearchModule],
+                inject: [MeiliSearchService],
                 name: Media.name,
-                useFactory: () => {
+                useFactory(m: MeiliSearchService) {
                     const schema = MediaSchema;
+
+                    schema.post('save', async function (_, next) {
+                        try {
+                            await m.updateDocuments('media', [
+                                {
+                                    id: this.id,
+                                    title: this.title,
+                                    altTitles: this.altTitles,
+                                    genres: this.genres,
+                                    kind: this.kind,
+                                    year: this.year,
+                                    cover: this.cover,
+                                    coverColor: this.coverColor,
+                                    status: this.status,
+                                    episodes:
+                                        (this as TVMediaDocument).episodes
+                                            ?.length ?? 0,
+                                },
+                            ]);
+                        } catch {
+                            console.error(
+                                `Update media index failed @ ${this.id}`,
+                            );
+                        }
+                        next();
+                    });
 
                     // sort episodes on save
                     schema.pre('save', function (next) {

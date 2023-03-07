@@ -18,16 +18,23 @@ import { AddEpisode } from './dto/add-episode.input';
 import { Episode } from './entities/tv.schema';
 import { UpdateEpisode } from './dto/update-episode.input';
 import { EpisodeStatus } from './enums/episodeStatus.enum';
+import MeiliSearch from 'meilisearch';
+import { InjectMeiliSearch } from 'nestjs-meilisearch';
 
 @Injectable()
 export class MediaService {
     constructor(
         @InjectModel(Media.name)
         protected mediaModel: Model<MediaDocument>,
+
         @InjectModel('tvmedia')
         protected tvMediaModel: Model<TVMediaDocument>,
+
         @InjectModel('moviemedia')
         protected movieMediaModel: Model<MovieMediaDocument>,
+
+        @InjectMeiliSearch()
+        protected meiliSearch: MeiliSearch,
     ) {}
 
     async create(createMediaInput: CreateMediaInput) {
@@ -64,9 +71,13 @@ export class MediaService {
 
     async update(id: string, updateMediaInput: UpdateMediaInput) {
         if (!isMongoId(id)) throw new GraphQLError('Not a mongo ID');
-        return await this.mediaModel.findByIdAndUpdate(id, {
-            $set: updateMediaInput,
-        });
+        const m = await this.mediaModel.findById(id);
+        if (!m) throw new GraphQLError('Invalid ID');
+
+        m.set(updateMediaInput);
+
+        await m.save();
+        return m;
     }
 
     async remove(id: string) {
@@ -156,6 +167,44 @@ export class MediaService {
         );
 
         await m.save();
+        return true;
+    }
+
+    async rebuildSearch() {
+        const t = await this.meiliSearch.createIndex('media', {
+            primaryKey: 'id',
+        });
+
+        await this.meiliSearch.waitForTask(t.taskUid);
+
+        const data = await this.mediaModel.aggregate([
+            {
+                $project: {
+                    _id: false,
+                    id: '$_id',
+                    title: true,
+                    altTitles: true,
+                    genres: true,
+                    year: true,
+                    kind: true,
+                    cover: true,
+                    coverColor: true,
+                    status: true,
+                    episodes: {
+                        $size: {
+                            $ifNull: ['$episodes', []],
+                        },
+                    },
+                },
+            },
+        ]);
+
+        const st = await this.meiliSearch
+            .index('media')
+            .addDocuments(data, { primaryKey: 'id' });
+
+        await this.meiliSearch.waitForTask(st.taskUid);
+
         return true;
     }
 }
