@@ -19,7 +19,7 @@ export class CreateMediaInput {
     @Field(() => [String])
     genres: string[];
 
-    @Field()
+    @Field(() => MediaKind)
     kind: MediaKind;
 
     @Field(() => Int)

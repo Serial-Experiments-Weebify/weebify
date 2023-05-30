@@ -46,3 +46,5 @@ minio/
 
 #graphql generated types
 **/_gql/*
+
+**/docs/**/*

@@ -1,12 +1,8 @@
-import { ref, computed } from 'vue';
+import { computed, ref } from 'vue';
 import { defineStore } from 'pinia';
-import {
-    useApolloClient,
-    useLazyQuery,
-    useQuery,
-} from '@vue/apollo-composable';
+import { useApolloClient } from '@vue/apollo-composable';
 import { gql } from '@/_gql';
-import type { User } from '@/_gql/graphql';
+import { type User, UserRole } from '@/_gql/graphql';
 import { useNotificationStore } from './notifications';
 
 const LOG_IN_MUTATION = gql(`
@@ -25,10 +21,12 @@ const ME_QUERY = gql(`
             bio
             role
             email
-            invitedBy
         }
+        followed
     }
 `);
+
+type AuthUser = Omit<User, 'followers' | 'following' | 'availableInviteCodes'>;
 
 export const useAuthStore = defineStore(
     'auth',
@@ -37,7 +35,8 @@ export const useAuthStore = defineStore(
 
         const loggedIn = ref(false);
         const token = ref('');
-        const me = ref<User>();
+        const me = ref<AuthUser>();
+        const followedIds = ref<string[]>();
 
         function logOut() {
             apollo.client.clearStore();
@@ -59,16 +58,17 @@ export const useAuthStore = defineStore(
             loggedIn.value = true;
             token.value = response.data?.login;
 
-            const user = await apollo.client.query({
+            const q = await apollo.client.query({
                 query: ME_QUERY,
             });
 
-            if (user.error || !user.data.me) {
+            if (q.error || !q.data.me) {
                 loggedIn.value = false;
                 throw 'Failed to fetch "me"';
             }
 
-            me.value = user.data.me;
+            me.value = q.data.me;
+            followedIds.value = q.data.followed;
         }
 
         function init() {
@@ -77,11 +77,12 @@ export const useAuthStore = defineStore(
                     .query({
                         query: ME_QUERY,
                     })
-                    .then((user) => {
-                        if (user.error || !user.data.me) {
+                    .then((q) => {
+                        if (q.error || !q.data.me) {
                             throw 'Failed to fetch "me"';
                         }
-                        me.value = user.data.me;
+                        me.value = q.data.me;
+                        followedIds.value = q.data.followed;
                     })
                     .catch(() => {
                         useNotificationStore().addNotification(
@@ -92,8 +93,36 @@ export const useAuthStore = defineStore(
             }
         }
 
+        function updateFollow(id: string, value: boolean) {
+            if (!followedIds.value) return;
 
-        return { loggedIn, logOut, logIn, token, me,init };
+            if (value && !followedIds.value.includes(id)) {
+                followedIds.value.push(id);
+            }
+
+            if (!value) {
+                followedIds.value = followedIds.value.filter((x) => x != id);
+            }
+        }
+
+        const isAdmin = computed(() => {
+            return (
+                me.value?.role == UserRole.Admin ||
+                me.value?.role == UserRole.God
+            );
+        });
+
+        return {
+            loggedIn,
+            logOut,
+            logIn,
+            token,
+            me,
+            init,
+            followedIds,
+            updateFollow,
+            isAdmin,
+        };
     },
     {
         persist: {

@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+    BadRequestException,
+    Injectable,
+    NotFoundException,
+} from '@nestjs/common';
 import { CreateMediaInput } from './dto/create-media.input';
 import { UpdateMediaInput } from './dto/update-media.input';
 import {
@@ -7,12 +11,11 @@ import {
     MovieMediaDocument,
     TVMediaDocument,
 } from './entities/media.entity';
-import { Document } from 'mongoose';
+import { Document, FilterQuery } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { MediaKind } from './enums/mediaKind.enum';
 import { v4 as uuid } from 'uuid';
-import { GraphQLError } from 'graphql';
 import { isMongoId } from 'class-validator';
 import { AddEpisode } from './dto/add-episode.input';
 import { Episode } from './entities/tv.schema';
@@ -20,6 +23,9 @@ import { UpdateEpisode } from './dto/update-episode.input';
 import { EpisodeStatus } from './enums/episodeStatus.enum';
 import MeiliSearch from 'meilisearch';
 import { InjectMeiliSearch } from 'nestjs-meilisearch';
+import { MediaStatus } from './enums/mediaStatus.enum';
+import { JwtService } from '@nestjs/jwt';
+import { VideoV0Document } from './entities/video.entity';
 
 @Injectable()
 export class MediaService {
@@ -33,8 +39,13 @@ export class MediaService {
         @InjectModel('moviemedia')
         protected movieMediaModel: Model<MovieMediaDocument>,
 
+        @InjectModel('VideoV0')
+        protected v0Model: Model<VideoV0Document>,
+
         @InjectMeiliSearch()
         protected meiliSearch: MeiliSearch,
+
+        protected jwt: JwtService,
     ) {}
 
     async create(createMediaInput: CreateMediaInput) {
@@ -70,9 +81,9 @@ export class MediaService {
     }
 
     async update(id: string, updateMediaInput: UpdateMediaInput) {
-        if (!isMongoId(id)) throw new GraphQLError('Not a mongo ID');
+        if (!isMongoId(id)) throw new BadRequestException('Not a mongo ID');
         const m = await this.mediaModel.findById(id);
-        if (!m) throw new GraphQLError('Invalid ID');
+        if (!m) throw new NotFoundException('Media not founbd');
 
         m.set(updateMediaInput);
 
@@ -81,25 +92,35 @@ export class MediaService {
     }
 
     async remove(id: string) {
-        if (!isMongoId(id)) throw new GraphQLError('Not a mongo ID');
-        return await this.mediaModel.findByIdAndDelete(id);
+        if (!isMongoId(id)) throw new BadRequestException('Not a mongo ID');
+
+        await this.mediaModel.findByIdAndDelete(id);
+
+        try {
+            const mi = await this.meiliSearch.getIndex('media');
+            mi.deleteDocument(id);
+        } catch (e) {
+            console.log(`Failed to delete ${id} from search`);
+        }
+
+        return;
     }
 
     async updateCover(id: string) {
-        if (!isMongoId(id)) throw new GraphQLError('Not a mongo ID');
+        if (!isMongoId(id)) throw new BadRequestException('Not a mongo ID');
         const key = uuid();
 
         const doc = await this.mediaModel.findByIdAndUpdate(id, {
             $set: { setCoverToken: key },
         });
 
-        if (!doc) throw new GraphQLError('Invalid ID');
+        if (!doc) throw new NotFoundException('Media not found');
 
         return key;
     }
 
     async addEpisode(mId: string, ep: AddEpisode) {
-        if (!isMongoId(mId)) throw new GraphQLError('Not a mongo ID');
+        if (!isMongoId(mId)) throw new BadRequestException('Not a mongo ID');
 
         const episode = new Episode();
         episode.extra = ep.extra;
@@ -107,7 +128,7 @@ export class MediaService {
         episode.episodeNumber = ep.episodeNumber;
         episode.episodeStatus = ep.episodeStatus;
         const m = await this.tvMediaModel.findById(mId);
-        if (!m) throw new GraphQLError('Media not found');
+        if (!m) throw new NotFoundException('Media not found');
         if (m.episodes) {
             m.episodes.push(episode);
         } else {
@@ -119,12 +140,12 @@ export class MediaService {
     }
 
     async quickFill(mId: string, count: number, status: EpisodeStatus) {
-        if (!isMongoId(mId)) throw new GraphQLError('Not a mongo ID');
-        if (count < 1) throw new GraphQLError('Count must be atleast 1');
+        if (!isMongoId(mId)) throw new BadRequestException('Not a mongo ID');
+        if (count < 1) throw new BadRequestException('Count must be atleast 1');
 
         const m = await this.tvMediaModel.findById(mId);
-        if (!m) throw new GraphQLError('Media not found');
-        if (!m.episodes) m.episodes = [];
+        if (!m) throw new NotFoundException('Media not found');
+        m.episodes = [];
 
         for (let i = 1; i <= count; i++) {
             const e = new Episode();
@@ -140,14 +161,14 @@ export class MediaService {
     }
 
     async updateEpisode(mId: string, eId: string, ep: UpdateEpisode) {
-        if (!isMongoId(mId)) throw new GraphQLError('Not a mongo ID');
-        if (!isMongoId(eId)) throw new GraphQLError('Not a mongo ID');
+        if (!isMongoId(mId)) throw new BadRequestException('Not a mongo ID');
+        if (!isMongoId(eId)) throw new BadRequestException('Not a mongo ID');
 
         const m = await this.tvMediaModel.findById(mId);
-        if (!m) throw new GraphQLError('Media not found');
-        if (!m.episodes) throw new GraphQLError('Episode not found');
+        if (!m) throw new NotFoundException('Media not found');
+        if (!m.episodes) throw new NotFoundException('Episode not found');
         const e = m.episodes.find((x) => eId == (x as Episode & Document).id);
-        if (!e) throw new GraphQLError('Episode not found');
+        if (!e) throw new NotFoundException('Episode not found');
 
         Object.assign(e, ep);
 
@@ -156,12 +177,12 @@ export class MediaService {
     }
 
     async removeEpisode(mId: string, eId: string) {
-        if (!isMongoId(mId)) throw new GraphQLError('Not a mongo ID');
-        if (!isMongoId(eId)) throw new GraphQLError('Not a mongo ID');
+        if (!isMongoId(mId)) throw new BadRequestException('Not a mongo ID');
+        if (!isMongoId(eId)) throw new BadRequestException('Not a mongo ID');
 
         const m = await this.tvMediaModel.findById(mId);
-        if (!m) throw new GraphQLError('Media not found');
-        if (!m.episodes) throw new GraphQLError('Episode not found');
+        if (!m) throw new NotFoundException('Media not found');
+        if (!m.episodes) throw new NotFoundException('Episode not found');
         m.episodes = m.episodes.filter(
             (x) => (x as Episode & Document).id != eId,
         );
@@ -170,7 +191,63 @@ export class MediaService {
         return true;
     }
 
+    async getRecent(limit: number) {
+        return await this.mediaModel.find({}, null, {
+            sort: { dateAdded: -1 },
+            limit,
+        });
+    }
+
+    async getAiring(limit: number) {
+        return await this.mediaModel.find(
+            {
+                status: MediaStatus.Airing,
+            },
+            null,
+            {
+                sort: { dateAdded: -1 },
+                limit,
+            },
+        );
+    }
+
+    async getRandom(n: number) {
+        return await this.mediaModel.aggregate([
+            { $sample: { size: n } },
+            { $addFields: { id: '$_id' } },
+            { $unset: ['_id', 'episodes'] },
+        ]);
+    }
+
+    async getVideoUploadToken(mid: string, eid?: string) {
+        const f: FilterQuery<MediaDocument> = { id: mid };
+        if (eid) {
+            f['kind'] = MediaKind.TV;
+            f['episodes._id'] = eid;
+        }
+        const a = await this.mediaModel.find(f);
+
+        if (!a) {
+            throw new NotFoundException('Media/Episode does not exist');
+        }
+
+        return this.jwt.sign(
+            {
+                kind: eid ? MediaKind.TV : MediaKind.MOVIE,
+                mid,
+                eid,
+            },
+            { expiresIn: '5m' },
+        );
+    }
+
+    async resolveV0(id: string) {
+        return await this.v0Model.findById(id);
+    }
+
     async rebuildSearch() {
+        await this.meiliSearch.deleteIndexIfExists('media');
+
         const t = await this.meiliSearch.createIndex('media', {
             primaryKey: 'id',
         });

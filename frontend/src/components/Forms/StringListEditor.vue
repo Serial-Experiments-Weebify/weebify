@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, watch } from 'vue';
 
 const props = defineProps<{
     list: string[];
@@ -11,6 +11,7 @@ const emit = defineEmits<{
 
 const internalList = ref<string[]>([]);
 
+// eslint-disable-next-line vue/no-setup-props-destructure
 internalList.value = props.list;
 
 watch(props, (n) => {
@@ -33,7 +34,11 @@ function rm(index: number) {
 <template>
     <div class="string-list-editor">
         <div class="list">
-            <div class="item" v-for="(item, index) in internalList">
+            <div
+                class="item"
+                v-for="(item, index) in internalList"
+                :key="index"
+            >
                 <input type="text" v-model="internalList[index]" />
                 <button type="button" class="reset" @click="() => rm(index)">
                     x

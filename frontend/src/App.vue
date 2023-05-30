@@ -12,10 +12,11 @@ import AddIcon from '@/icons/AddIcon.vue';
 import HomeIcon from '@/icons/HomeIcon.vue';
 import LogOutIcon from '@/icons/LogOutIcon.vue';
 
-import Popup from '@/components/Popup.vue';
+import WeebifyPopup from '@/components/WeebifyPopup.vue';
 import DropDown from '@/components/DropDown.vue';
 import NewMedia from '@/components/Media/NewMedia.vue';
-import Notification from '@/components/Notifications/Notification.vue';
+import WeebifyNotification from '@/components/Notifications/WeebifyNotification.vue';
+import AdminIcon from './icons/AdminIcon.vue';
 
 const auth = useAuthStore();
 auth.init();
@@ -36,7 +37,7 @@ const canEdit = computed(
 <template>
     <div id="notifications">
         <transition-group name="notif-list">
-            <Notification
+            <WeebifyNotification
                 v-for="n in notif.notifications"
                 :key="n.id"
                 :type="n.type"
@@ -57,7 +58,11 @@ const canEdit = computed(
         </RouterLink>
         <div :style="{ flex: 1 /* spacer */ }"></div>
 
-        <button class="reset nav-icon-link" @click="() => (showNew = true)">
+        <button
+            class="reset nav-icon-link"
+            v-if="auth.loggedIn && canEdit"
+            @click="() => (showNew = true)"
+        >
             <AddIcon />
         </button>
 
@@ -100,6 +105,17 @@ const canEdit = computed(
                     <UserIcon class="transition-stroke" />
                     Profile
                 </RouterLink>
+                <RouterLink
+                    :to="{
+                        name: 'user',
+                        params: { username: auth.me.username },
+                    }"
+                    v-if="auth.isAdmin"
+                    class="nav-icon-link"
+                >
+                    <AdminIcon class="transition-stroke" />
+                    Admin
+                </RouterLink>
                 <a href="#" class="nav-icon-link" @click.prevent="logout">
                     <LogOutIcon class="transition-stroke" />
                     Logout
@@ -108,9 +124,9 @@ const canEdit = computed(
         </DropDown>
     </nav>
     <router-view :style="{ flex: 1 }" />
-    <Popup v-model:show="showNew" title="Add media">
+    <WeebifyPopup v-model:show="showNew" title="Add media">
         <NewMedia />
-    </Popup>
+    </WeebifyPopup>
 </template>
 
 <style lang="less">

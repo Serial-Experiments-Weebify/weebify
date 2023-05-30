@@ -23,9 +23,12 @@ type User {
 
   """Note: gets returned only for admins and yourself"""
   email: String
+  followers: [User!]!
+  following: [User!]!
 
   """The user that invited this user"""
-  invitedBy: String
+  invitedBy: User
+  availableInviteCodes: [String!]
 }
 
 enum UserRole {
@@ -41,7 +44,7 @@ type Episode {
   episodeNumber: Float!
   extra: String
   title: String!
-  mediaId: String!
+  mediaId: String
   episodeStatus: EpisodeStatus!
 }
 
@@ -77,12 +80,36 @@ enum MediaStatus {
   Finished
 }
 
+type MediaPreview {
+  id: String!
+  title: String!
+  altTitles: [String!]!
+  description: String!
+  kind: MediaKind!
+  year: Int!
+  cover: String
+  coverColor: String!
+  status: MediaStatus!
+}
+
+type HomeRecomendations {
+  random: [MediaPreview!]!
+  airing: [MediaPreview!]!
+  recent: [MediaPreview!]!
+}
+
+type VideoV0 {
+  key: String!
+}
+
 type Query {
   me: User
   mediaById(id: String!): Media!
-  media: [Media!]!
+  homeRecomendations: HomeRecomendations!
+  VideoV0(id: String!): VideoV0
   users: [User!]!
   user(idOrUsername: String!): User!
+  followed: [String!]!
 }
 
 type Mutation {
@@ -95,6 +122,7 @@ type Mutation {
   quickFill(mediaId: String!, count: Int!, status: EpisodeStatus!): Media!
   removeEpisode(mediaId: String!, episodeId: String!): Boolean!
   updateEpisode(mediaId: String!, episodeId: String!, episode: UpdateEpisode!): Episode!
+  uploadMedia(mediaId: String!, episodeId: String): String!
   rebuildMediaSearch: Boolean!
   signUp(createUserInput: CreateUserInput!): User!
   generateInviteCode(id: String): String!
@@ -103,6 +131,9 @@ type Mutation {
   setRole(id: String!, role: UserRole!): Boolean!
   updatePfp(id: String): String!
   rebuildUserSearch: Boolean!
+  follow(uid: String!): String!
+  unfollow(uid: String!): String!
+  revokeInvite(invite: String!, user: String): Boolean!
 }
 
 input LoginInput {
@@ -116,7 +147,7 @@ input CreateMediaInput {
   description: String!
   anilistId: String
   genres: [String!]!
-  kind: String!
+  kind: MediaKind!
   year: Int!
   status: MediaStatus!
 }

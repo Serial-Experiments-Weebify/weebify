@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { MediaDocument, media } from "./media.model";
+import { MediaDocument, mediaModel } from "./media.model";
 
 export interface AuthenticatedRequest extends Request {
     media: MediaDocument;
@@ -15,7 +15,7 @@ export async function AuthenticateBySetCoverToken(
     const token = req.headers["authorization"]?.match(TOKEN_REGEX)?.[1];
     if (!token) return res.status(401).send({ error: "Unauthorized" });
 
-    const m = await media.findOne({ setCoverToken: token });
+    const m = await mediaModel.findOne({ setCoverToken: token });
     if (!m) return res.status(401).send({ error: "Unauthorized" });
 
     //@ts-ignore

@@ -10,6 +10,7 @@ body {
 
 * {
     font-family: 'Montserrat', sans-serif;
+    text-rendering: geometricPrecision;
 }
 
 a {
@@ -58,6 +59,7 @@ button.reset {
 }
 
 .w-base-button {
+    // display: block;
     border: none;
     outline: none;
     background-color: @c-cyan;
@@ -74,6 +76,16 @@ button.reset {
         background-color: @c-clay;
         cursor: not-allowed;
     }
+}
+
+.w-huge-button {
+    .w-base-button;
+    width: fit-content;
+    font-size: 28px;
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 15px 25px;
+    border-radius: 10px;
 }
 
 .w-big-button {
@@ -186,4 +198,21 @@ form .wform {
     100% {
         background-position: 0% 50%;
     }
+}
+
+.btn-loading {
+    color: @c-snow;
+    background-color: desaturate(@c-cyan, 15%);
+    background-image: linear-gradient(
+        90deg,
+        #0000 40%,
+        fade(@c-snow, 50%),
+        #0000 60%
+    );
+    background-size: 220%;
+    animation: Loading 1s ease infinite;
+}
+
+.rl-no-fucking-text-decoration {
+    text-decoration: none !important;
 }

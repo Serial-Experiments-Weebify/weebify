@@ -13,7 +13,7 @@ export class AuthResolver {
     @UseGuards(AuthOnlyGuard)
     @Query(() => User, { nullable: true })
     async me(@Context('user') user: UserDocument) {
-        return new User(user, true);
+        return user;
     }
 
     @UseGuards(NoAuthGuard)

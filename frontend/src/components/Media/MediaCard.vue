@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { SearchMedia } from '@/types';
-import { MediaKind } from '@/_gql/graphql';
 
-const props = defineProps<{ media: SearchMedia }>();
+const props = defineProps<{
+    media: Pick<SearchMedia, 'cover' | 'coverColor' | 'title'>;
+}>();
 
 const imageStyle = computed(() => {
     return {
@@ -11,16 +12,14 @@ const imageStyle = computed(() => {
         backgroundColor: props.media.coverColor ?? '#888',
     };
 });
-
-function gotoMedia() {}
 </script>
 
 <template>
-    <div class="media" :style="imageStyle" @click="gotoMedia">
-        <span class="title">{{ media.title }}</span>
-        <span class="se-number" v-if="media.kind == MediaKind.Tv">{{
-            media.episodes
-        }}</span>
+    <div class="media" :style="imageStyle">
+        <div class="title-container">
+            <span class="title">{{ media.title }}</span>
+        </div>
+        <!-- <div class="status" :class="[media.status.toLowerCase()]"></div> -->
     </div>
 </template>
 
@@ -35,44 +34,54 @@ function gotoMedia() {}
     background-size: cover !important;
     display: flex;
 }
-.media > .title {
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
 
+.title-container {
     padding: 0.5em;
     position: absolute;
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #000c;
-    text-overflow: ellipsis;
+    background-color: fade(@c-oil, 90%);
+}
+
+.media .title {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+
     color: @c-snow;
     font-weight: 500;
 }
 
-.media > .se-number {
-    padding: 0.5em;
+.media > .status {
     position: absolute;
-    top: 0;
-    right: 0;
-    border-bottom-left-radius: 1em;
-    background-color: #000c;
-    /* backdrop-filter: blur(4px); */
-    color: @c-snow;
-    border: 2px solid @c-cyan;
-    border-top: none;
-    border-right: none;
+    top: 10px;
+    right: 10px;
+    width: 15px;
+    height: 15px;
+    border-radius: 1000px;
+
+    background-color: @c-clay;
+    box-shadow: 0 0 4px 2px #000c;
+
+    &.finished {
+        background-color: @c-algae;
+        box-shadow: 0 0 4px 2px fade(@c-algae, 75%);
+    }
+    &.airing {
+        background-color: @c-mandy;
+        box-shadow: 0 0 4px 2px fade(@c-mandy, 75%);
+    }
 }
 
 .media:hover {
     transition: 0.2s cubic-bezier(0.22, 0.61, 0.36, 1);
     box-shadow: 0 0 1rem 1rem #0008;
     z-index: 10;
-    transform: scale(1.3);
+    transform: scale(1.1);
 }
-.media:hover > .title {
+.media:hover .title {
     transition: 0.2s linear;
     color: @c-cyan;
 }

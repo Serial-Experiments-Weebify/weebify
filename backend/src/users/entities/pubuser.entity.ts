@@ -1,20 +1,8 @@
 import { ObjectType, Field } from '@nestjs/graphql';
 import { UserRole } from '../enums/UserRole.enum';
-import { UserDocument } from './user.entity';
 
 @ObjectType()
 export class User {
-    constructor(d: UserDocument, showEmail: boolean) {
-        this.id = d.id;
-        this.username = d.username;
-        this.bio = d.bio;
-        this.pfp = d.pfp;
-        this.role = d.role;
-        this.displayName = d.displayName;
-        this.invitedBy = d.invitedBy?._id.toString();
-        if (showEmail) this.email = d.email;
-    }
-
     @Field(() => String, {
         description: 'The unique id for this user',
         nullable: false,
@@ -48,9 +36,15 @@ export class User {
     })
     email?: string;
 
-    @Field(() => String, {
+    @Field(() => [User])
+    followers: User[];
+
+    @Field(() => [User])
+    following: User[];
+
+    @Field(() => User, {
         description: 'The user that invited this user',
         nullable: true,
     })
-    invitedBy?: string;
+    invitedBy?: User;
 }

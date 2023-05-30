@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type Ref, ref } from 'vue';
+import { ref } from 'vue';
 
 type InputType = 'password' | 'text' | 'email';
 const props = withDefaults(

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Popup from '@/components/Popup.vue';
+import WeebifyPopup from '@/components/WeebifyPopup.vue';
 import { useAuthStore } from '@/stores/auth';
 import { gql } from '@/_gql';
 import { UserRole, MediaKind, type Episode } from '@/_gql/graphql';
@@ -37,13 +37,14 @@ query MediaPage($id: String!) {
       extra
       title
       episodeStatus
+      mediaId
     }
   }
 }
 `);
 const props = defineProps<{ id: string }>();
 
-const { loading, result, error, refetch } = useQuery(MEDIA_QUERY, {
+const { loading, result, refetch } = useQuery(MEDIA_QUERY, {
     id: props.id,
 });
 
@@ -90,10 +91,11 @@ async function deleteMedia() {
             );
         } else if (data?.removeMedia) {
             notify.addNotification('info', `Sucessfully removed media`);
-            router.push({ name: 'browse' });
+            router.push({ name: 'search' });
         }
-    } catch {
+    } catch (e) {
         notify.addNotification('error', `Unknown error removing media!`);
+        console.error(e);
     } finally {
         loading.value = false;
     }
@@ -156,19 +158,22 @@ const selectedEpisode = ref<Ep | null>(null);
 
 <template>
     <main class="detailed-view">
-        <Popup :title="media?.title ?? ''" v-model:show="showBigDescription">
+        <WeebifyPopup
+            :title="media?.title ?? ''"
+            v-model:show="showBigDescription"
+        >
             <p>
                 {{ media?.description }}
             </p>
-        </Popup>
-        <Popup title="Edit media" v-model:show="showEdit">
+        </WeebifyPopup>
+        <WeebifyPopup title="Edit media" v-model:show="showEdit">
             <EditMedia
                 @updated="() => refetch()"
                 :id="media?.id ?? ''"
                 :current-data="media"
             />
-        </Popup>
-        <Popup title="Confirmation" v-model:show="confirmDelete">
+        </WeebifyPopup>
+        <WeebifyPopup title="Confirmation" v-model:show="confirmDelete">
             <p>Are you sure you want to delete this media?</p>
             <button
                 class="w-big-button w-button-green mr10"
@@ -184,7 +189,7 @@ const selectedEpisode = ref<Ep | null>(null);
             >
                 No
             </button>
-        </Popup>
+        </WeebifyPopup>
 
         <div class="bg" :style="bgStyle"></div>
         <div class="top">
@@ -222,7 +227,11 @@ const selectedEpisode = ref<Ep | null>(null);
                         />
                     </a>
                 </div>
-                <h2 class="alt-title" v-for="title in media?.altTitles">
+                <h2
+                    class="alt-title"
+                    v-for="(title, i) in media?.altTitles"
+                    :key="i"
+                >
                     {{ title }}
                 </h2>
                 <h1>{{ media?.title }} ({{ media?.year }})</h1>
@@ -252,7 +261,7 @@ const selectedEpisode = ref<Ep | null>(null);
                 >
                     Add Episode
                 </button>
-                <Popup title="Add episode" v-model:show="showNewEpisode">
+                <WeebifyPopup title="Add episode" v-model:show="showNewEpisode">
                     <AddEpisode
                         :mId="media.id"
                         @updated="
@@ -262,7 +271,7 @@ const selectedEpisode = ref<Ep | null>(null);
                             }
                         "
                     />
-                </Popup>
+                </WeebifyPopup>
                 <button
                     class="w-medium-button w-button-green"
                     @click="() => (showQuickfill = true)"
@@ -270,7 +279,7 @@ const selectedEpisode = ref<Ep | null>(null);
                     Quickfill
                 </button>
 
-                <Popup title="Quickfill" v-model:show="showQuickfill">
+                <WeebifyPopup title="Quickfill" v-model:show="showQuickfill">
                     <QuickfillEpisodes
                         :id="media.id"
                         @updated="
@@ -280,10 +289,13 @@ const selectedEpisode = ref<Ep | null>(null);
                             }
                         "
                     />
-                </Popup>
+                </WeebifyPopup>
             </div>
             <div class="episodes">
-                <Popup v-model:show="showEpisodeEdit" title="Edit episode">
+                <WeebifyPopup
+                    v-model:show="showEpisodeEdit"
+                    title="Edit episode"
+                >
                     <EditEpisode
                         :mId="media.id"
                         :episode="selectedEpisode!"
@@ -294,9 +306,12 @@ const selectedEpisode = ref<Ep | null>(null);
                             }
                         "
                     />
-                </Popup>
+                </WeebifyPopup>
 
-                <Popup title="Confirm delete" v-model:show="showDeleteEpisode">
+                <WeebifyPopup
+                    title="Confirm delete"
+                    v-model:show="showDeleteEpisode"
+                >
                     <p>
                         Are you sure you want to delete <br />
                         Episode {{ selectedEpisode?.episodeNumber
@@ -317,41 +332,77 @@ const selectedEpisode = ref<Ep | null>(null);
                     >
                         No
                     </button>
-                </Popup>
-
-                <RouterLink
-                    :to="{ name: 'home' }"
-                    class="episode"
-                    v-for="episode in media.episodes"
-                >
-                    <span
-                        class="status"
-                        :class="episode.episodeStatus.toLowerCase()"
+                </WeebifyPopup>
+                <template v-for="episode in media.episodes">
+                    <RouterLink
+                        v-if="!!episode.mediaId"
+                        :to="{ name: 'watch', params: { id: episode.mediaId } }"
+                        class="episode"
+                        :key="episode.id"
                     >
-                        {{ episode.episodeStatus }}
-                    </span>
-                    <span
-                        >Episode {{ episode.episodeNumber
-                        }}{{ episode.extra ?? '' }} - {{ episode.title }}</span
+                        <span
+                            class="status"
+                            :class="episode.episodeStatus.toLowerCase()"
+                        >
+                            {{ episode.episodeStatus }}
+                        </span>
+                        <span
+                            >Episode {{ episode.episodeNumber
+                            }}{{ episode.extra ?? '' }} -
+                            {{ episode.title }}</span
+                        >
+                        <div style="flex: 1"></div>
+                        <template v-if="canEdit">
+                            <button
+                                class="w-medium-button w-button-blue"
+                                @click.prevent="() => showEditEpisode(episode)"
+                            >
+                                Edit
+                            </button>
+                            <button
+                                class="w-medium-button w-button-red"
+                                @click.prevent="() => showDeletePrompt(episode)"
+                            >
+                                Delete
+                            </button>
+                        </template>
+                    </RouterLink>
+                    <div
+                        v-else
+                        class="episode disabled"
+                        :key="`${episode.id}-d`"
                     >
-                    <div style="flex: 1"></div>
-                    <template v-if="canEdit">
-                        <button
-                            class="w-medium-button w-button-blue"
-                            @click.prevent="() => showEditEpisode(episode)"
+                        <span
+                            class="status"
+                            :class="episode.episodeStatus.toLowerCase()"
                         >
-                            Edit
-                        </button>
-                        <button
-                            class="w-medium-button w-button-red"
-                            @click.prevent="() => showDeletePrompt(episode)"
+                            {{ episode.episodeStatus }}
+                        </span>
+                        <span
+                            >Episode {{ episode.episodeNumber
+                            }}{{ episode.extra ?? '' }} -
+                            {{ episode.title }}</span
                         >
-                            Delete
-                        </button>
-                    </template>
-                </RouterLink>
+                        <div style="flex: 1"></div>
+                        <template v-if="canEdit">
+                            <button
+                                class="w-medium-button w-button-blue"
+                                @click.prevent="() => showEditEpisode(episode)"
+                            >
+                                Edit
+                            </button>
+                            <button
+                                class="w-medium-button w-button-red"
+                                @click.prevent="() => showDeletePrompt(episode)"
+                            >
+                                Delete
+                            </button>
+                        </template>
+                    </div>
+                </template>
             </div>
         </div>
+
         <div class="media-list" v-else-if="media?.kind === MediaKind.Movie">
             Movie: (Tle pride se extra metadata hopefully)
             <RouterLink :to="{ name: 'home' }" class="w-big-button">
@@ -563,6 +614,11 @@ const selectedEpisode = ref<Ep | null>(null);
             border-radius: 5px;
             width: 100%;
             box-sizing: border-box;
+
+            &.disabled {
+                color: @c-clay;
+            }
+
             .status {
                 background-color: gray;
                 padding: 0.2rem 0.4rem;
@@ -581,6 +637,10 @@ const selectedEpisode = ref<Ep | null>(null);
 
             &:hover {
                 background-color: fade(@c-cyan, 70%) !important;
+            }
+
+            &.disabled:hover {
+                background-color: fade(@c-clay, 20%) !important;
             }
 
             &:nth-child(odd) {

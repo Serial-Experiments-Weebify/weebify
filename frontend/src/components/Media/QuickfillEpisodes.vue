@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { reactive, ref, onMounted } from 'vue';
+import { reactive, ref } from 'vue';
 
 import { useApolloClient } from '@vue/apollo-composable';
 import { useNotificationStore } from '@/stores/notifications';
 import { gql } from '@/_gql';
-import { EpisodeStatus, MediaKind, MediaStatus } from '@/_gql/graphql';
+import { EpisodeStatus } from '@/_gql/graphql';
 import NumberInput from '../Forms/NumberInput.vue';
-import { useRouter } from 'vue-router';
 
 const apollo = useApolloClient();
 const notify = useNotificationStore();
@@ -84,9 +83,7 @@ async function createMedia() {
             <option :value="EpisodeStatus.Aired">Aired</option>
             <option :value="EpisodeStatus.Upcoming">Upcoming</option>
         </select>
-        <p class="alert">
-            Note: Quickfill will clear all existing episodes.
-        </p>
+        <p class="alert">Note: Quickfill will clear all existing episodes.</p>
         <button class="w-big-button" :disabled="loading">Fill</button>
     </form>
 </template>
@@ -100,7 +97,7 @@ h5 {
 }
 p.alert {
     border: 2px solid @c-mandy;
-    background-color: fade(@c-mandy,50%);
+    background-color: fade(@c-mandy, 50%);
     padding: 10px;
     border-radius: 10px;
     font-weight: 500;

@@ -160,6 +160,7 @@ async function signup() {
                 value="Sign up"
                 :disabled="loading"
             />
+            <br />
             <RouterLink :to="{ name: 'login' }">Log in instead</RouterLink>
         </form>
     </main>
@@ -174,6 +175,9 @@ main {
         padding: 20px;
         border-radius: 20px;
         background-color: @c-mirage;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
     }
 }
 </style>

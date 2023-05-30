@@ -20,6 +20,8 @@ import { MeiliSearchModule } from 'nestjs-meilisearch';
     imports: [
         ConfigModule.forRoot({ isGlobal: true }),
         AuthModule,
+        MediaModule,
+        UsersModule,
         MongooseModule.forRootAsync({
             imports: [ConfigModule],
             inject: [ConfigService],
@@ -49,8 +51,6 @@ import { MeiliSearchModule } from 'nestjs-meilisearch';
                 };
             },
         }),
-        MediaModule,
-        UsersModule,
     ],
     providers: [{ provide: APP_GUARD, useClass: RolesGuard }],
 })

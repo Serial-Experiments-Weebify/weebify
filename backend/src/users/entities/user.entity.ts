@@ -35,6 +35,13 @@ export class User {
 
     @Prop({ type: [String], default: [] })
     inviteCodes: string[];
+
+    @Prop({
+        type: [{ type: SchemaTypes.ObjectId, ref: 'User' }],
+        required: true,
+        default: [],
+    })
+    following: User[];
 }
 
 export type UserDocument = User & Document;

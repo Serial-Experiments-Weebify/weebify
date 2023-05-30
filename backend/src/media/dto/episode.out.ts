@@ -11,8 +11,8 @@ export class Episode {
     extra?: string;
     @Field()
     title: string;
-    @Field()
-    mediaId: string;
+    @Field(() => String, { nullable: true })
+    mediaId?: string;
     @Field(() => EpisodeStatus)
     episodeStatus: EpisodeStatus;
 }

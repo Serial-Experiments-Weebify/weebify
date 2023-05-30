@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Testimonial from '@/components/Content/Testimonial.vue';
+import UserTestimonial from '@/components/Content/UserTestimonial.vue';
 import { useAuthStore } from '@/stores/auth';
 
 const auth = useAuthStore();
@@ -25,7 +25,7 @@ const auth = useAuthStore();
         </div>
         <div class="testimonials sane-width">
             <h1 id="testimonials">User Testimonials</h1>
-            <Testimonial
+            <UserTestimonial
                 name="Martin (real person)"
                 pfp-side="left"
                 image="/misc/martin.webp"
@@ -33,32 +33,52 @@ const auth = useAuthStore();
                 Weebify is lit, just like Megumin's Explosion spell. Never have
                 to worry about buffering or lag again, it's like a KABOOM of
                 anime goodness!
-            </Testimonial>
-            <Testimonial
+            </UserTestimonial>
+            <UserTestimonial
                 name="Teknix"
                 pfp-side="right"
                 image="/misc/teknix.webp"
             >
                 "Great hentai website"
-            </Testimonial>
-            <Testimonial
+            </UserTestimonial>
+            <UserTestimonial
                 name="Ted Kaczynski"
                 pfp-side="left"
                 image="/misc/ted.webp"
             >
                 The Industrial Revolution and its consequences have been a
                 disaster for the human race.
-            </Testimonial>
-            <Testimonial name="David" pfp-side="right" image="/misc/david.webp">
-                Ti si retarded
-            </Testimonial>
-            <Testimonial
+            </UserTestimonial>
+            <UserTestimonial
+                name="David"
+                pfp-side="right"
+                image="/misc/david.webp"
+            >
+                10/10
+            </UserTestimonial>
+            <UserTestimonial
                 name="Matic (developer)"
                 pfp-side="left"
                 image="/misc/asuka.png"
             >
                 :painpeko:
-            </Testimonial>
+            </UserTestimonial>
+            <UserTestimonial
+                name="Fulcrum"
+                pfp-side="right"
+                image="/misc/fulcrum.webp"
+            >
+                I am the original Fulcrum. FULCRUM! COME IN!
+                <br />
+                YUUUUUUUUUUUUUUUUUUUH... YODIE GANG! ya feel me?
+            </UserTestimonial>
+            <UserTestimonial
+                name="Bane"
+                pfp-side="left"
+                image="/misc/bane.webp"
+            >
+                It doesn't matter who we are. What matters is our plan.
+            </UserTestimonial>
         </div>
     </main>
 </template>

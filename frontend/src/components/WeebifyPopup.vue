@@ -53,7 +53,7 @@ function close() {
     grid-template-rows: auto auto;
     grid-template-areas: 'title close' 'main main';
     min-width: 300px;
-    gap:5px;
+    gap: 5px;
 
     padding: 10px;
     border-radius: 10px;
@@ -79,11 +79,11 @@ function close() {
         }
     }
     .popup-content {
-        padding: 0 10px ;
+        padding: 0 10px;
         grid-area: main;
         max-height: 80vh;
         overflow: auto;
-        :deep(&>:first-child) {
+        :deep(& > :first-child) {
             margin-top: 0;
         }
     }

@@ -1,12 +1,13 @@
 import { createRouter, createWebHistory } from 'vue-router';
 
-import UserView from '@/views/User.vue';
-import HomeView from '@/views/Home.vue';
-import IndexView from '@/views/Index.vue';
-import LoginView from '@/views/Login.vue';
-import SignUpView from '@/views/SignUp.vue';
-import SearchView from '@/views/Search.vue';
-import MediaView from '@/views/Media.vue';
+import UserView from '@/views/UserView.vue';
+import HomeView from '@/views/HomeView.vue';
+import IndexView from '@/views/IndexView.vue';
+import LoginView from '@/views/LoginView.vue';
+import SignUpView from '@/views/SignUpView.vue';
+import SearchView from '@/views/SearchView.vue';
+import MediaView from '@/views/MediaView.vue';
+import WatchView from '@/views/WatchView.vue';
 
 import { useAuthStore } from '@/stores/auth';
 import { useNotificationStore } from '@/stores/notifications';
@@ -80,14 +81,21 @@ const router = createRouter({
                 auth: AuthState.LoggedIn,
             },
         },
+        {
+            path: '/w/:id',
+            name: 'watch',
+            props: true,
+            component: WatchView,
+            meta: {
+                auth: AuthState.LoggedIn,
+            },
+        },
     ],
 });
 
 router.beforeEach((to) => {
     const authState = useAuthStore().loggedIn;
     const toMeta = to.meta as RouterMeta;
-
-    console.log({ n: to.name, authState, tr: toMeta.auth });
 
     switch (toMeta.auth ?? AuthState.Any) {
         case AuthState.Any:

@@ -1,4 +1,4 @@
-import { ref, warn } from 'vue';
+import { ref } from 'vue';
 import { defineStore } from 'pinia';
 
 type Level = 'info' | 'warn' | 'error';
@@ -13,8 +13,8 @@ interface INotification {
 const TYPE2TIME: Record<Level, number> = {
     info: 3000,
     warn: 5000,
-    error: 10000
-}
+    error: 10000,
+};
 
 export const useNotificationStore = defineStore('notifications', () => {
     const notifications = ref<INotification[]>([]);
@@ -26,7 +26,7 @@ export const useNotificationStore = defineStore('notifications', () => {
         notifications.value.push({ id, type, message, time });
     }
     function removeNotification(id: number) {
-        let index = notifications.value.findIndex((x) => x.id == id);
+        const index = notifications.value.findIndex((x) => x.id == id);
         if (index != -1) {
             notifications.value.splice(index, 1);
         }

@@ -45,4 +45,8 @@ export class S3Service {
     public async uploadBuffer(bucket: string, key: string, buffer: Buffer) {
         return await this.s3c.putObject(bucket, key, buffer);
     }
+
+    public async presign(bucket: string, key: string) {
+        return await this.s3c.presignedPutObject(bucket, key, 1800);
+    }
 }

@@ -12,6 +12,8 @@ import { UpdateEpisode } from './dto/update-episode.input';
 import { UpdateMediaInput } from './dto/update-media.input';
 import { CreateMediaInput } from './dto/create-media.input';
 import { EpisodeStatus } from './enums/episodeStatus.enum';
+import { HomeRecomendations } from './dto/home.out';
+import { VideoV0 } from './dto/video.out';
 
 @UseGuards(AuthOnlyGuard)
 @Resolver(() => Media)
@@ -54,11 +56,6 @@ export class MediaResolver {
         return await this.mediaService.findOne(id);
     }
 
-    @Query(() => [Media], { name: 'media' })
-    findAll() {
-        return this.mediaService.findAll();
-    }
-
     @Mutation(() => Media)
     @Roles(UserRole.GOD, UserRole.ADMIN)
     async addEpisode(
@@ -66,6 +63,17 @@ export class MediaResolver {
         @Args('episode', { type: () => AddEpisode }) episode: AddEpisode,
     ) {
         return await this.mediaService.addEpisode(mediaId, episode);
+    }
+
+    @Query(() => HomeRecomendations)
+    async homeRecomendations() {
+        const [airing, recent, random] = await Promise.all([
+            this.mediaService.getAiring(10),
+            this.mediaService.getRecent(10),
+            this.mediaService.getRandom(1),
+        ]);
+
+        return { airing, recent, random };
     }
 
     @Mutation(() => Media)
@@ -101,9 +109,24 @@ export class MediaResolver {
         );
     }
 
+    @Mutation(() => String)
+    @Roles(UserRole.GOD, UserRole.ADMIN)
+    async uploadMedia(
+        @Args('mediaId', { type: () => String }) mediaId: string,
+        @Args('episodeId', { type: () => String, nullable: true })
+        episodeId?: string,
+    ) {
+        return this.mediaService.getVideoUploadToken(mediaId, episodeId);
+    }
+
     @Mutation(() => Boolean)
     @Roles(UserRole.GOD, UserRole.ADMIN)
     async rebuildMediaSearch() {
         return await this.mediaService.rebuildSearch();
+    }
+
+    @Query(() => VideoV0, { nullable: true })
+    async VideoV0(@Args('id', { type: () => String }) id: string) {
+        return await this.mediaService.resolveV0(id);
     }
 }

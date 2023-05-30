@@ -1,11 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { compare } from 'bcrypt';
+import { verify } from 'argon2';
 import { Model } from 'mongoose';
 import { User, UserDocument } from 'src/users/entities/user.entity';
 import { LoginInput } from './dto/login.input';
 import { JwtService } from '@nestjs/jwt';
-import { GraphQLError } from 'graphql';
 
 /*
     Service for handling authentication
@@ -21,10 +20,10 @@ export class AuthService {
 
     async login(input: LoginInput): Promise<{ user: User; token: string }> {
         const user = await this.userModel.findOne({ username: input.username });
-        if (!user) throw new GraphQLError('Incorrect password or username.');
-
-        if (!(await compare(input.password, user.passwordHash))) {
-            throw new GraphQLError('Incorrect password or username.');
+        if (!user)
+            throw new UnauthorizedException('Incorrect password or username.');
+        if (!(await verify(user.passwordHash, input.password))) {
+            throw new UnauthorizedException('Incorrect password or username.');
         }
 
         const token = this.jwt.sign({ sub: user.id }, { expiresIn: '30d' });
@@ -38,9 +37,6 @@ export class AuthService {
         const data = this.jwt.decode(token, { json: true }) as { sub: unknown };
         if (typeof data?.sub !== 'string') return null;
 
-        return await this.userModel
-            .findById(data.sub)
-            .populate('invitedBy')
-            .exec();
+        return await this.userModel.findById(data.sub);
     }
 }

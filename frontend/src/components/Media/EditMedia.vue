@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue';
+import { ref, onMounted } from 'vue';
 
 import TextInput from '@/components/Forms/TextInput.vue';
 import TextareaInput from '@/components/Forms/TextareaInput.vue';
 import GetFile from '@/components/Forms/GetFile.vue';
 import { useApolloClient } from '@vue/apollo-composable';
 import { useNotificationStore } from '@/stores/notifications';
-import { useAuthStore } from '@/stores/auth';
 import { gql } from '@/_gql';
 import { MediaKind, MediaStatus, type MediaPageQuery } from '@/_gql/graphql';
 import StringListEditorVue from '@/components/Forms/StringListEditor.vue';

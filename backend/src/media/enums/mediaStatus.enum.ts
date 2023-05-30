@@ -5,4 +5,5 @@ export enum MediaStatus {
     Airing = 'AIRING',
     Finished = 'FINISHED',
 }
+
 registerEnumType(MediaStatus, { name: 'MediaStatus' });

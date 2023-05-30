@@ -9,9 +9,15 @@ import { S3Service } from "../services/s3.service";
 import { AuthenticateUserByPfpToken } from "../user/pfpAuth.middleware";
 import { WeebifyImage } from "../util/WeebifyImage";
 import { AuthenticateBySetCoverToken } from "../media/setCoverAuth";
-import { MediaDocument } from "../media/media.model";
+import { MediaDocument, mediaModel } from "../media/media.model";
+import { urlencoded } from "body-parser";
+import { JWTAuth, VideoJwt } from "../video/jwtAuth.middleware";
+import { videoV0Model } from "../video/video.model";
+import { Types } from "mongoose";
+import { SearchService } from "../services/search.service";
 
 const s3 = Container.get(S3Service);
+const search = Container.get(SearchService);
 
 const upload = multer({
     storage: memoryStorage(),
@@ -22,6 +28,8 @@ const upload = multer({
 });
 
 export const media = express.Router();
+
+media.use(urlencoded({ extended: true }));
 
 media.post(
     "/pfp",
@@ -72,7 +80,11 @@ media.post(
 
             user.pfpToken = undefined;
             user.pfp = key;
-            await user.save();
+
+            await user.save().catch(() => console.log("Error saving"));
+            await search
+                .updateSingle("users", { id: user.id, pfp: key })
+                .catch(() => console.log("Error updating search"));
             return res.status(200).send({ error: null, key });
         } catch (e) {
             console.error(e);
@@ -126,17 +138,24 @@ media.post(
             ];
 
             await Promise.all(uploads);
-
+            let color = "#888888";
             try {
-                media.coverColor = await cover.getColor();
+                color = await cover.getColor();
             } catch {
                 console.error("Error getting image color");
             }
 
             media.setCoverToken = undefined;
             media.cover = key;
+            media.coverColor = color;
             await media.save();
-
+            await search
+                .updateSingle("media", {
+                    id: media.id,
+                    cover: key,
+                    coverColor: color,
+                })
+                .catch(() => console.log("Error updating search"));
             return res.status(200).send({ error: null, key });
         } catch (e) {
             console.error(e);
@@ -146,3 +165,64 @@ media.post(
         }
     }
 );
+
+media.post("/video", JWTAuth, async (req, res) => {
+    if (typeof req.body.key !== "string")
+        return res.status(400).send({ error: "Bad key." });
+    try {
+        const m = (req as any as VideoJwt).media;
+        if (
+            typeof m.kind != "string" ||
+            typeof m.mid != "string" ||
+            typeof m.eid == "object"
+        )
+            return res.status(400).send({ error: "Bad JWT." });
+
+        const selectedMedia = await mediaModel.findById(m.mid);
+        if (!selectedMedia)
+            return res.status(400).send({ error: "Bad media ID" });
+
+        // create video
+        const v = await videoV0Model.create({ key: req.body.key });
+        if (!v) throw "fuck";
+
+        const url: string = await s3.presign("media", req.body.key);
+        const key = new URL(url);
+        key.protocol = "";
+        key.hostname = "";
+        key.port = "";
+
+        // update media
+        console.log(m.kind);
+        switch (m.kind) {
+            case "TV":
+                if (!m.eid)
+                    return res.status(400).send({ error: "Bad episode ID" });
+
+                const ep = selectedMedia?.episodes?.find((x) => {
+                    return x._id.toString() == m.eid!;
+                });
+
+                if (!ep)
+                    return res.status(400).send({ error: "Bad episode ID" });
+
+                ep.mediaId = v._id;
+
+                break;
+            case "MOVIE":
+                selectedMedia.mediaId = v._id;
+                break;
+        }
+        await selectedMedia.save();
+
+        return res.send({
+            error: null,
+            key: key.toString().replace(/https?:\/\/localhost/, ""),
+        });
+    } catch {
+        if (typeof req.body.key !== "string")
+            return res.status(500).send({ error: "Died" });
+    }
+
+    return res.status(500).send({ error: "Died" });
+});

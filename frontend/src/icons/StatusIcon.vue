@@ -11,7 +11,7 @@ const props = defineProps<{
         viewBox="0 0 48 48"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        v-if="type == 'info'"
+        v-if="props.type == 'info'"
     >
         <circle cx="24" cy="24" r="17" stroke="#14131C" stroke-width="2" />
         <path
@@ -26,7 +26,7 @@ const props = defineProps<{
         viewBox="0 0 48 48"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        v-else-if="type == 'warn'"
+        v-else-if="props.type == 'warn'"
     >
         <path
             d="M24 18V29.5M23.5 32.5H24.5V33.5H23.5V32.5Z"

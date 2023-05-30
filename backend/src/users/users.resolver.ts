@@ -1,18 +1,54 @@
-import { Resolver, Query, Mutation, Args, Context, Int } from '@nestjs/graphql';
+import {
+    Resolver,
+    Query,
+    Mutation,
+    Args,
+    Context,
+    ResolveField,
+    Parent,
+} from '@nestjs/graphql';
 import { UsersService } from './users.service';
 import { User } from './entities/pubuser.entity';
 import { CreateUserInput } from './dto/create-user.input';
-import { UseGuards } from '@nestjs/common';
+import {
+    ForbiddenException,
+    NotFoundException,
+    UseGuards,
+} from '@nestjs/common';
 import { AuthOnlyGuard, NoAuthGuard } from 'src/auth/auth.guard';
 import { UpdateUserInput } from './dto/update-user.input';
 import { Roles } from 'src/auth/roles/role.decorator';
 import { roleCompare, UserRole } from './enums/UserRole.enum';
 import { UserDocument } from './entities/user.entity';
-import { GraphQLError } from 'graphql';
 
 @Resolver(() => User)
 export class UsersResolver {
     constructor(private readonly usersService: UsersService) {}
+
+    @ResolveField(() => String)
+    id(@Parent() user: User) {
+        return user.id ?? (user as any)._id ?? '';
+    }
+
+    @ResolveField(() => String, { nullable: true })
+    email(@Parent() oUser: User, @Context('user') user: UserDocument) {
+        return roleCompare(user.role, UserRole.ADMIN) >= 0 ? oUser.email : null;
+    }
+
+    @UseGuards(AuthOnlyGuard)
+    @ResolveField(() => [String], { nullable: true })
+    async availableInviteCodes(
+        @Context('user') user: UserDocument,
+        @Parent() userO: UserDocument,
+    ) {
+        if (
+            user.id != (userO.id ?? (userO as any)._id) &&
+            roleCompare(user.role, UserRole.ADMIN) < 0
+        ) {
+            return null;
+        }
+        return userO.inviteCodes;
+    }
 
     @UseGuards(NoAuthGuard)
     @Mutation(() => User)
@@ -24,9 +60,7 @@ export class UsersResolver {
     @Query(() => [User], { name: 'users' })
     @Roles(UserRole.ADMIN, UserRole.GOD, UserRole.MODERATOR)
     async findAll() {
-        const users = (await this.usersService.findAll()).map(
-            (u) => new User(u, true),
-        );
+        const users = await this.usersService.findAll();
         return users;
     }
 
@@ -59,8 +93,8 @@ export class UsersResolver {
         @Args('idOrUsername', { type: () => String }) idOrUsername: string,
     ) {
         const u = await this.usersService.findOne(idOrUsername);
-        if (!u) throw new GraphQLError('User not found');
-        return new User(u, roleCompare(user.role, UserRole.ADMIN) >= 0); //show emails to admins and higher
+        if (!u) throw new NotFoundException('User not found');
+        return u;
     }
 
     @UseGuards(AuthOnlyGuard)
@@ -96,5 +130,76 @@ export class UsersResolver {
     @Roles(UserRole.GOD, UserRole.ADMIN)
     async rebuildUserSearch() {
         return await this.usersService.rebuildSearch();
+    }
+
+    @UseGuards(AuthOnlyGuard)
+    @ResolveField(() => [User])
+    async followers(@Parent() user: User) {
+        return await this.usersService.findFollowers(user.id);
+    }
+
+    @UseGuards(AuthOnlyGuard)
+    @ResolveField(() => [User])
+    async following(@Parent() user: User) {
+        return await this.usersService.findFollowing(user.id);
+    }
+
+    @UseGuards(AuthOnlyGuard)
+    @ResolveField(() => User)
+    async invitedBy(@Parent() user: User) {
+        return await this.usersService.findInviter(user.id);
+    }
+
+    @UseGuards(AuthOnlyGuard)
+    @Mutation(() => String)
+    async follow(
+        @Context('user') user: UserDocument,
+        @Args('uid', { type: () => String }) uid: string,
+    ) {
+        await this.usersService.followUser(user.id, uid);
+        return uid;
+    }
+
+    @UseGuards(AuthOnlyGuard)
+    @Mutation(() => String)
+    async unfollow(
+        @Context('user') user: UserDocument,
+        @Args('uid', { type: () => String }) uid: string,
+    ) {
+        await this.usersService.unfollowUser(user.id, uid);
+        return uid;
+    }
+
+    @UseGuards(AuthOnlyGuard)
+    @Query(() => [String])
+    async followed(@Context('user') user: UserDocument) {
+        return user.following;
+    }
+
+    @UseGuards(AuthOnlyGuard)
+    @Mutation(() => Boolean)
+    async revokeInvite(
+        @Context('user') user: UserDocument,
+        @Args('invite') invite: string,
+        @Args('user', { nullable: true }) userId?: string,
+    ) {
+        //TODO: not perfect
+        const isAdmin = roleCompare(user.role, UserRole.MODERATOR) >= 0;
+
+        if (userId != user.id) {
+            if (!isAdmin) {
+                throw new ForbiddenException(
+                    `You can't revoke this user's invites`,
+                );
+            }
+
+            return this.usersService.revokeInvite(invite, userId);
+        }
+
+        if (!isAdmin) {
+            return this.usersService.revokeInvite(invite, user.id);
+        }
+
+        return this.usersService.revokeInvite(invite);
     }
 }

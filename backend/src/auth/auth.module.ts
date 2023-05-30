@@ -5,6 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { UserSchema } from '../users/entities/user.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthService } from './auth.service';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 /*
     Authentication and authorization module
@@ -14,7 +15,15 @@ import { AuthService } from './auth.service';
 @Module({
     imports: [
         MongooseModule.forFeature([{ name: 'User', schema: UserSchema }]),
-        JwtModule.register({ secret: 'REPLACEME' }), //TODO: replaceme
+        JwtModule.registerAsync({
+            imports: [ConfigModule],
+            inject: [ConfigService],
+            async useFactory(config: ConfigService) {
+                return {
+                    secret: config.getOrThrow('AUTH_JWT_KEY'),
+                };
+            },
+        }),
     ],
     exports: [AuthService, AuthResolver],
     providers: [AuthResolver, UsersService, AuthService],

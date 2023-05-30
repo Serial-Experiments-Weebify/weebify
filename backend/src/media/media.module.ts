@@ -7,15 +7,29 @@ import { TvSchema } from './entities/tv.schema';
 import { MediaKind } from './enums/mediaKind.enum';
 import { MovieSchema } from './entities/movie.schema';
 import { MeiliSearchModule, MeiliSearchService } from 'nestjs-meilisearch';
+import { Video, VideoSchema } from './entities/video.entity';
+import { V0Schema } from './entities/v0.schema';
+import { WeebifyVideoFormat } from './enums/videoFormat.enum';
+import { JwtModule } from '@nestjs/jwt';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
     providers: [MediaResolver, MediaService],
     imports: [
+        JwtModule.registerAsync({
+            imports: [ConfigModule],
+            inject: [ConfigService],
+            async useFactory(config: ConfigService) {
+                return {
+                    secret: config.getOrThrow('MEDIA_JWT_KEY'),
+                };
+            },
+        }),
         MongooseModule.forFeatureAsync([
             {
+                name: Media.name,
                 imports: [MeiliSearchModule],
                 inject: [MeiliSearchService],
-                name: Media.name,
                 useFactory(m: MeiliSearchService) {
                     const schema = MediaSchema;
 
@@ -79,6 +93,19 @@ import { MeiliSearchModule, MeiliSearchService } from 'nestjs-meilisearch';
                         name: 'moviemedia',
                         schema: MovieSchema,
                         value: MediaKind.MOVIE,
+                    },
+                ],
+            },
+            {
+                name: Video.name,
+                useFactory() {
+                    return VideoSchema;
+                },
+                discriminators: [
+                    {
+                        name: 'VideoV0',
+                        schema: V0Schema,
+                        value: WeebifyVideoFormat.V0,
                     },
                 ],
             },

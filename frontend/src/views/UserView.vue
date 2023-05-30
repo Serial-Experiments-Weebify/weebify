@@ -1,20 +1,27 @@
 <script setup lang="ts">
 import RoleIcon from '@/icons/RoleIcon.vue';
-import { useQuery } from '@vue/apollo-composable';
+import { useApolloClient, useQuery } from '@vue/apollo-composable';
 import { gql } from '@/_gql/gql';
 import { UserRole } from '@/_gql/graphql';
-import { computed, ref, reactive } from 'vue';
+import { computed, ref } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 
-import Popup from '@/components/Popup.vue';
+import WeebifyPopup from '@/components/WeebifyPopup.vue';
 import EditUserPopup from '@/components/User/EditUserPopup.vue';
+import { useNotificationStore } from '@/stores/notifications';
+import UserCard from '@/components/User/UserCard.vue';
+import InviteCode from '@/components/User/InviteCode.vue';
 
+const notify = useNotificationStore();
 const auth = useAuthStore();
+
 const props = defineProps<{
     username: string;
 }>();
 
-const { loading, result, error, refetch } = useQuery(
+const client = useApolloClient();
+
+const { result, error, refetch } = useQuery(
     gql(`
     query UserPage($username: String!) {
         user(idOrUsername: $username) {
@@ -24,23 +31,91 @@ const { loading, result, error, refetch } = useQuery(
             pfp
             bio
             role
-            email
-            invitedBy
+            email,
+            availableInviteCodes,
+            following{
+                id
+                role
+                username
+                displayName
+                pfp
+            }
+            followers {
+                id
+                role
+                username
+                displayName
+                pfp
+            }
         }
     }
 `),
-    {
+    () => ({
         username: props.username,
-    }
+    })
 );
 
 const showEdit = ref(false);
 
 const PRIVILEGED_ROLES = [UserRole.God, UserRole.Admin];
 
-const canFollow = computed(() => {
-    return !!result?.value?.user.id && result.value.user.id != auth.me?.id;
+const isCurrentUser = computed(() => {
+    return !!result?.value?.user.id && result.value.user.id == auth.me?.id;
 });
+
+const following = computed(() => {
+    return auth.followedIds?.includes(result?.value?.user.id ?? '');
+});
+
+const followLoading = ref(false);
+
+const FOLLOW_MUT = gql(`
+mutation FollowUser($id: String!) {
+  follow(uid:$id)
+}
+`);
+
+const UNFOLLOW_MUT = gql(`
+mutation UnfollowUser($id: String!) {
+  unfollow(uid:$id)
+}
+`);
+
+const FOLLOW_MUT_MAP = {
+    0: UNFOLLOW_MUT,
+    1: FOLLOW_MUT,
+};
+
+async function updateFollow(v: boolean) {
+    followLoading.value = true;
+
+    try {
+        const id = result?.value?.user.id;
+        if (!id) {
+            throw 'Invalid ID';
+        }
+        const { errors } = await client.client.mutate({
+            mutation: FOLLOW_MUT_MAP[v ? 1 : 0],
+            variables: {
+                id,
+            },
+        });
+
+        if (errors) {
+            notify.addNotification(
+                'error',
+                errors[0].message ?? 'Unknown error'
+            );
+        } else {
+            auth.updateFollow(id, v);
+            refetch();
+        }
+    } catch (e: any) {
+        notify.addNotification('error', e?.toString() ?? 'Unknown error');
+    } finally {
+        followLoading.value = false;
+    }
+}
 
 const canEdit = computed(() => {
     if (!result?.value?.user.id) return false;
@@ -102,9 +177,15 @@ const usernameEmail = computed(() => {
                     "
                     alt="Profile picture"
                 />
-                <button class="w-big-button" :disabled="!canFollow">
-                    Follow
+                <button
+                    class="w-big-button"
+                    :class="{ 'btn-loading': followLoading }"
+                    :disabled="isCurrentUser || followLoading"
+                    @click="() => updateFollow(!following)"
+                >
+                    {{ following ? 'Unfollow' : 'Follow' }}
                 </button>
+
                 <button
                     class="w-big-button"
                     :disabled="!canEdit"
@@ -118,9 +199,57 @@ const usernameEmail = computed(() => {
                     <span class="t"> BIO: </span>
                     <p>{{ result?.user.bio }}</p>
                 </div>
+                <div class="bio">
+                    <span class="t"> Activity: </span><br />
+                    No recent activity...
+                </div>
+                <div class="bio">
+                    <span class="t"> Followers: </span>
+                    <div class="ulist scroll">
+                        <RouterLink
+                            class="rl-no-fucking-text-decoration"
+                            v-for="u in result?.user.followers ?? []"
+                            :key="u.username"
+                            :to="{
+                                name: 'user',
+                                params: { username: u.username },
+                            }"
+                        >
+                            <UserCard :user="u" />
+                        </RouterLink>
+                    </div>
+                </div>
+                <div class="bio">
+                    <span class="t"> Following: </span>
+                    <div class="ulist scroll">
+                        <RouterLink
+                            class="rl-no-fucking-text-decoration"
+                            v-for="u in result?.user.followers ?? []"
+                            :key="u.username"
+                            :to="{
+                                name: 'user',
+                                params: { username: u.username },
+                            }"
+                        >
+                            <UserCard :user="u" />
+                        </RouterLink>
+                    </div>
+                </div>
+                <div class="bio" v-if="result?.user.availableInviteCodes">
+                    <span class="t">Invite codes:</span>
+                    <div class="invites scroll">
+                        <InviteCode
+                            v-for="code in result!.user.availableInviteCodes"
+                            :key="code"
+                            :invite-code="code"
+                            :user="result!.user.id"
+                            :can-remove="canEdit"
+                        />
+                    </div>
+                </div>
             </div>
         </div>
-        <Popup title="Edit user" v-model:show="showEdit">
+        <WeebifyPopup title="Edit user" v-model:show="showEdit">
             <EditUserPopup
                 :id="result?.user.id"
                 :display-name="result?.user.displayName"
@@ -129,7 +258,7 @@ const usernameEmail = computed(() => {
                 :role="result?.user.role"
                 @updated="() => refetch()"
             />
-        </Popup>
+        </WeebifyPopup>
     </main>
     <main v-else></main>
 </template>
@@ -143,6 +272,26 @@ const usernameEmail = computed(() => {
         background-position: 200% 200%;
     }
 }
+
+.ulist {
+    list-style: none;
+    height: fit-content;
+    display: grid;
+    grid-gap: 0.5em;
+    padding: 30px;
+    grid-template-columns: repeat(auto-fill, minmax(14em, 1fr));
+}
+
+.invites {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(26em, 1fr));
+}
+
+.scroll {
+    max-height: 30vh;
+    overflow-y: auto;
+}
+
 .loading {
     background-image: linear-gradient(
         -45deg,
@@ -242,6 +391,7 @@ const usernameEmail = computed(() => {
             flex-direction: column;
             align-items: stretch;
             gap: 20px;
+            margin-bottom: 10px;
 
             .bio {
                 background-color: @c-mirage;

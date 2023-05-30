@@ -7,11 +7,9 @@ import { useNotificationStore } from '@/stores/notifications';
 import { gql } from '@/_gql';
 import { EpisodeStatus, type Episode } from '@/_gql/graphql';
 import NumberInput from '../Forms/NumberInput.vue';
-import { useRouter } from 'vue-router';
 
 const apollo = useApolloClient();
 const notify = useNotificationStore();
-const router = useRouter();
 
 function emptyAsNull(a: string | null | undefined) {
     if (typeof a !== 'string') return null;
