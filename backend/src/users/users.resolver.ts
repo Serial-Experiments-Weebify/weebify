@@ -8,7 +8,7 @@ import {
     Parent,
 } from '@nestjs/graphql';
 import { UsersService } from './users.service';
-import { User } from './entities/pubuser.entity';
+import { User } from './dto/user.out';
 import { CreateUserInput } from './dto/create-user.input';
 import {
     ForbiddenException,
@@ -20,6 +20,7 @@ import { UpdateUserInput } from './dto/update-user.input';
 import { Roles } from 'src/auth/roles/role.decorator';
 import { roleCompare, UserRole } from './enums/UserRole.enum';
 import { UserDocument } from './entities/user.entity';
+import { Session } from './dto/session.out';
 
 @Resolver(() => User)
 export class UsersResolver {
@@ -183,7 +184,6 @@ export class UsersResolver {
         @Args('invite') invite: string,
         @Args('user', { nullable: true }) userId?: string,
     ) {
-        //TODO: not perfect
         const isAdmin = roleCompare(user.role, UserRole.MODERATOR) >= 0;
 
         if (userId != user.id) {
@@ -201,5 +201,43 @@ export class UsersResolver {
         }
 
         return this.usersService.revokeInvite(invite);
+    }
+
+    @UseGuards(AuthOnlyGuard)
+    @ResolveField(() => [Session], {
+        nullable: true,
+    })
+    async sessions(
+        @Context('user') user: UserDocument,
+        @Parent() userO: UserDocument,
+    ) {
+        if (user.id != userO.id) {
+            // if we're checking someone else's sessions, we need to be an admin
+            // and higher than the user we're checking
+            if (
+                roleCompare(user.role, UserRole.ADMIN) < 0 ||
+                roleCompare(user.role, userO.role) <= 0
+            ) {
+                return null;
+            }
+        }
+
+        return userO.sessions.map(
+            ({
+                _id,
+                expiresAt,
+                ipAddress,
+                lastAccessed,
+                searchKey,
+                userAgent,
+            }) => ({
+                sid: _id,
+                expiresAt,
+                ipAddress,
+                lastAccessed,
+                searchKey,
+                userAgent,
+            }),
+        );
     }
 }

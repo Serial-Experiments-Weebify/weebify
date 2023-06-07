@@ -5,14 +5,18 @@ import { gql } from '@/_gql';
 import { type User, UserRole } from '@/_gql/graphql';
 import { useNotificationStore } from './notifications';
 
-const LOG_IN_MUTATION = gql(`
-    mutation LogIn2($username: String!, $password: String!) {
-        login(loginInput: { username: $username, password: $password })
+const LOG_IN_SESSION_MUTATION = gql(`
+    mutation LogInSession($username: String!, $password: String!) {
+        loginSession(loginInput: { username: $username, password: $password }) {
+            token,
+            searchKey,
+            expiresAt
+        }
     }
 `);
 
 const ME_QUERY = gql(`
-    query Me2 {
+    query AuthMe {
         me {
             id
             username
@@ -26,7 +30,16 @@ const ME_QUERY = gql(`
     }
 `);
 
-type AuthUser = Omit<User, 'followers' | 'following' | 'availableInviteCodes'>;
+const LOG_OUT_MUTATION = gql(`
+    mutation LogOut {
+	    logout
+    }
+`);
+
+type AuthUser = Omit<
+    User,
+    'followers' | 'following' | 'availableInviteCodes' | 'sessions'
+>;
 
 export const useAuthStore = defineStore(
     'auth',
@@ -35,28 +48,50 @@ export const useAuthStore = defineStore(
 
         const loggedIn = ref(false);
         const token = ref('');
+        const searchKey = ref('');
+        const expiration = ref(new Date(0));
         const me = ref<AuthUser>();
         const followedIds = ref<string[]>();
 
-        function logOut() {
+        function localLogOut() {
             apollo.client.clearStore();
+
             loggedIn.value = false;
             token.value = '';
+            searchKey.value = '';
+            expiration.value = new Date(0);
+            me.value = undefined;
+            followedIds.value = undefined;
+        }
+
+        async function fullLogOut() {
+            try {
+                await apollo.client.mutate({
+                    mutation: LOG_OUT_MUTATION,
+                });
+            } catch (e) {
+                console.error(e);
+            } finally {
+                localLogOut();
+            }
         }
 
         async function logIn(username: string, password: string) {
-            if (loggedIn.value) throw 'bruh';
+            if (loggedIn.value) throw 'Cannot log in while logged in';
 
             const response = await apollo.client.mutate({
-                mutation: LOG_IN_MUTATION,
+                mutation: LOG_IN_SESSION_MUTATION,
                 variables: { username, password },
             });
 
             if (response.errors) throw response.errors[0].message;
             //it worked
-            if (!response.data?.login) throw 'No token';
+            if (!response.data?.loginSession.token) throw 'No token';
             loggedIn.value = true;
-            token.value = response.data?.login;
+
+            token.value = response.data!.loginSession.token;
+            searchKey.value = response.data!.loginSession.searchKey;
+            expiration.value = new Date(response.data!.loginSession.expiresAt);
 
             const q = await apollo.client.query({
                 query: ME_QUERY,
@@ -71,25 +106,46 @@ export const useAuthStore = defineStore(
             followedIds.value = q.data.followed;
         }
 
-        function init() {
+        async function init() {
+            if (typeof expiration.value === 'string') {
+                // the persist plugin doesn't recreate Date objects
+                expiration.value = new Date(expiration.value);
+            }
+
             if (loggedIn.value) {
-                apollo.client
-                    .query({
+                console.log([
+                    {
+                        0: 'auth init',
+                        state: loggedIn.value,
+                        token: token.value,
+                        searchKey: searchKey.value,
+                        expiration: expiration.value,
+                    },
+                ]);
+
+                try {
+                    const { data, error } = await apollo.client.query({
                         query: ME_QUERY,
-                    })
-                    .then((q) => {
-                        if (q.error || !q.data.me) {
-                            throw 'Failed to fetch "me"';
-                        }
-                        me.value = q.data.me;
-                        followedIds.value = q.data.followed;
-                    })
-                    .catch(() => {
-                        useNotificationStore().addNotification(
-                            'error',
-                            'Failed to fetch "me"'
-                        );
                     });
+
+                    if (error) {
+                        throw error;
+                    } else if (!data.me) {
+                        throw { epic: 'fail' };
+                    }
+
+                    me.value = data.me;
+                    followedIds.value = data.followed;
+                } catch (e) {
+                    console.error(e);
+
+                    useNotificationStore().addNotification(
+                        'error',
+                        'Invalid session, try refreshing the page'
+                    );
+
+                    localLogOut();
+                }
             }
         }
 
@@ -114,9 +170,11 @@ export const useAuthStore = defineStore(
 
         return {
             loggedIn,
-            logOut,
+            logOut: fullLogOut,
             logIn,
             token,
+            searchKey,
+            expiration,
             me,
             init,
             followedIds,
@@ -126,7 +184,7 @@ export const useAuthStore = defineStore(
     },
     {
         persist: {
-            paths: ['loggedIn', 'token'],
+            paths: ['loggedIn', 'token', 'searchKey', 'expiration'],
         },
     }
 );

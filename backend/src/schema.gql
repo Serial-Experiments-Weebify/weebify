@@ -29,6 +29,7 @@ type User {
   """The user that invited this user"""
   invitedBy: User
   availableInviteCodes: [String!]
+  sessions: [Session!]
 }
 
 enum UserRole {
@@ -37,6 +38,25 @@ enum UserRole {
   MODERATOR
   LEGENDARY_MEMBER
   USER
+}
+
+type AuthSession {
+  token: String!
+  searchKey: String!
+  expiresAt: DateTime!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Session {
+  sid: String!
+  ipAddress: String!
+  userAgent: String!
+  lastAccessed: DateTime!
+  expiresAt: DateTime!
 }
 
 type Episode {
@@ -113,7 +133,9 @@ type Query {
 }
 
 type Mutation {
-  login(loginInput: LoginInput!): String!
+  loginSession(loginInput: LoginInput!): AuthSession!
+  logout: Boolean!
+  revokeSession(sid: String!, user: String): Boolean!
   createMedia(createMediaInput: CreateMediaInput!): String!
   updateMedia(id: String!, updateMediaInput: UpdateMediaInput!): String!
   updateMediaCover(id: String!): String!

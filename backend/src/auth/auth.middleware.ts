@@ -10,5 +10,28 @@ export const authenticateUser = async (
     request: Request,
 ) => {
     const token = request.headers.authorization?.replace('Bearer ', '');
-    return await authService.me(token);
+
+    const mt = await authService.matchToken(token);
+    const sid = mt.session;
+    if (!mt.user || !sid) return mt;
+
+    const session = mt.user.sessions.find((s) => s._id.equals(sid));
+
+    if (!session) return mt;
+
+    if (
+        // only update once per minute, or if request source changes
+        session.ipAddress != request.ip ||
+        session.userAgent != request.headers['user-agent'] ||
+        session.lastAccessed < new Date(Date.now() - 60_000)
+    ) {
+        authService.updateSession(
+            mt.user.id,
+            sid,
+            request.ip,
+            request.headers['user-agent'] ?? '<unknown>',
+        );
+    }
+
+    return mt;
 };

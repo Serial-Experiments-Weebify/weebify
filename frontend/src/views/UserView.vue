@@ -8,6 +8,7 @@ import { useAuthStore } from '@/stores/auth';
 
 import WeebifyPopup from '@/components/WeebifyPopup.vue';
 import EditUserPopup from '@/components/User/EditUserPopup.vue';
+import RevokeSessionsPopup from '@/components/User/RevokeSessionsPopup.vue';
 import { useNotificationStore } from '@/stores/notifications';
 import UserCard from '@/components/User/UserCard.vue';
 import InviteCode from '@/components/User/InviteCode.vue';
@@ -47,6 +48,13 @@ const { result, error, refetch } = useQuery(
                 displayName
                 pfp
             }
+            sessions {
+                sid
+                expiresAt
+                ipAddress
+                lastAccessed
+                userAgent
+            }
         }
     }
 `),
@@ -55,7 +63,8 @@ const { result, error, refetch } = useQuery(
     })
 );
 
-const showEdit = ref(false);
+const showEdit = ref(false),
+    showSessions = ref(false);
 
 const PRIVILEGED_ROLES = [UserRole.God, UserRole.Admin];
 
@@ -193,6 +202,14 @@ const usernameEmail = computed(() => {
                 >
                     Edit
                 </button>
+
+                <button
+                    class="w-big-button"
+                    :disabled="!(canEdit && result?.user.sessions)"
+                    @click="() => (showSessions = true)"
+                >
+                    Sessions
+                </button>
             </div>
             <div class="content">
                 <div class="bio">
@@ -257,6 +274,13 @@ const usernameEmail = computed(() => {
                 :email="result?.user.email"
                 :role="result?.user.role"
                 @updated="() => refetch()"
+            />
+        </WeebifyPopup>
+
+        <WeebifyPopup title="Manage sessions" v-model:show="showSessions">
+            <RevokeSessionsPopup
+                :sessions="result?.user.sessions ?? []"
+                :user="result?.user.id"
             />
         </WeebifyPopup>
     </main>

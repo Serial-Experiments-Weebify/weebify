@@ -45,7 +45,8 @@ services:
     expose:
       - 7700
     environment:
-      - MEILI_ENV=development
+      - MEILI_ENV=production
+      - MEILI_MASTER_KEY=weebifyEpicMasterKey
     volumes:
       - meili-data:/meili_data
 

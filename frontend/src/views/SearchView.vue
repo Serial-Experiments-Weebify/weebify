@@ -4,14 +4,18 @@ import SearchPagination from '@/components/Search/SearchPagination.vue';
 import SearchBox from '@/components/Search/SearchBox.vue';
 import UserList from '@/components/Search/UserList.vue';
 import { instantMeiliSearch } from '@meilisearch/instant-meilisearch';
+
 import { ref } from 'vue';
+import { useAuthStore } from '@/stores/auth';
+
+const auth = useAuthStore();
 
 const url = new URL(document.location.toString());
 url.search = '';
 url.hash = '';
 url.pathname = '/api/search';
 
-const searchClient = instantMeiliSearch(url.toString(), undefined, {
+const searchClient = instantMeiliSearch(url.toString(), auth.searchKey, {
     finitePagination: true,
 });
 

@@ -2,14 +2,14 @@ import log4js from "log4js";
 
 log4js.configure({
     appenders: {
-        stdout: { type: 'stdout' }
+        stdout: { type: "stdout" },
     },
     categories: {
         default: {
-            appenders: ['stdout'],
-            level: 'all'
-        }
-    }
+            appenders: ["stdout"],
+            level: "all",
+        },
+    },
 });
 
 const logger = log4js.getLogger();
@@ -20,8 +20,7 @@ console.error = logger.error.bind(logger);
 import express from "express";
 
 export const app = express();
-app.set('trust proxy', 'loopback, linklocal, uniquelocal')
+app.set("trust proxy", true);
 
 import mongoose from "mongoose";
-mongoose.set('strictQuery', false);
-
+mongoose.set("strictQuery", false);

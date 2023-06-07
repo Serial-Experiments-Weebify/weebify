@@ -35,8 +35,11 @@ import { MeiliSearchModule } from 'nestjs-meilisearch';
             inject: [AuthService],
             useFactory: (authService: AuthService) => ({
                 async context({ req }) {
-                    const user = await authenticateUser(authService, req);
-                    return { req, user };
+                    const { session, user } = await authenticateUser(
+                        authService,
+                        req,
+                    );
+                    return { req, user, session };
                 },
                 autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
             }),

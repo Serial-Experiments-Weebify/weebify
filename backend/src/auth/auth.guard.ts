@@ -1,6 +1,6 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
-import { User } from 'src/users/entities/pubuser.entity';
+import { User } from 'src/users/dto/user.out';
 
 /*
     Basic guards for blocking/allowing access for authenticated users
