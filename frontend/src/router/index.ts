@@ -11,16 +11,9 @@ import WatchView from '@/views/WatchView.vue';
 
 import { useAuthStore } from '@/stores/auth';
 import { useNotificationStore } from '@/stores/notifications';
+import { ADMIN_ROUTES } from './admin';
 
-export enum AuthState {
-    Any = 'any',
-    LoggedIn = 'user',
-    LoggedOut = 'anon',
-}
-
-export interface RouterMeta {
-    auth?: AuthState;
-}
+import { AuthState, type RouterMeta } from './meta';
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -90,6 +83,7 @@ const router = createRouter({
                 auth: AuthState.LoggedIn,
             },
         },
+        ...ADMIN_ROUTES,
     ],
 });
 

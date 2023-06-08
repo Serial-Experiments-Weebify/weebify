@@ -107,8 +107,7 @@ const canEdit = computed(
                 </RouterLink>
                 <RouterLink
                     :to="{
-                        name: 'user',
-                        params: { username: auth.me.username },
+                        name: 'admin',
                     }"
                     v-if="auth.isAdmin"
                     class="nav-icon-link"
@@ -138,7 +137,7 @@ const canEdit = computed(
     #notifications {
         z-index: 200;
         position: fixed;
-        top: 0;
+        bottom: 0;
         right: 0;
 
         display: flex;

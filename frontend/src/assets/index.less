@@ -67,6 +67,8 @@ button.reset {
     color: @c-oil;
     font-weight: 500;
     text-decoration: none;
+    transition: @t-subtle background-color ease, @t-subtle color ease;
+    cursor: pointer;
 
     &:hover {
         background-color: lighten(@c-cyan, 10%);
@@ -203,6 +205,17 @@ form .wform {
 .btn-loading {
     color: @c-snow;
     background-color: desaturate(@c-cyan, 15%);
+    background-image: linear-gradient(
+        90deg,
+        #0000 40%,
+        fade(@c-snow, 50%),
+        #0000 60%
+    );
+    background-size: 220%;
+    animation: Loading 1s ease infinite;
+}
+
+.btn-load-overlay:disabled {
     background-image: linear-gradient(
         90deg,
         #0000 40%,

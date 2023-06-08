@@ -1,17 +1,13 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, computed } from 'vue';
 
 import { useApolloClient } from '@vue/apollo-composable';
 import { useNotificationStore } from '@/stores/notifications';
-import { useAuthStore } from '@/stores/auth';
 import platform from 'platform';
 import { gql } from '@/_gql';
-import { UserRole } from '@/_gql/graphql';
 
 const { client } = useApolloClient();
-const apollo = useApolloClient();
 const notify = useNotificationStore();
-const auth = useAuthStore();
 
 const props = defineProps<{
     sessions: {
@@ -59,7 +55,7 @@ async function remove(sid: string) {
 }
 
 // in miliseconds
-var units = {
+const units = {
     year: 24 * 60 * 60 * 1000 * 365,
     month: (24 * 60 * 60 * 1000 * 365) / 12,
     day: 24 * 60 * 60 * 1000,
@@ -68,14 +64,14 @@ var units = {
     second: 1000,
 };
 
-var rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
+const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
 
 function relativeTime(d1: Date | string) {
     if (typeof d1 === 'string') d1 = new Date(d1);
-    var elapsed = d1.valueOf() - Date.now();
+    const elapsed = d1.valueOf() - Date.now();
 
     const [unit, ms] = Object.entries(units).find(
-        ([_, ms]) => Math.abs(elapsed) > ms
+        ([, ms]) => Math.abs(elapsed) > ms
     ) ?? ['second', 1000];
 
     return rtf.format(
