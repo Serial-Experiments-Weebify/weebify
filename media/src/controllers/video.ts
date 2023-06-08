@@ -33,7 +33,18 @@ videoController.post("/create/v1", async (req, res) => {
     res.json({ ok: 1 });
 });
 
-videoController.post("/verify/:id", async (req, res) => {});
+videoController.post("/verify/:id", async (req, res) => {
+    const id = req.params.id;
+    if (typeof id !== "string")
+        return res.status(400).json({ error: "Bad request" });
+    try {
+        const video = await videoService.verify(id);
+        if (!video) return res.status(404).json({ error: "Not found" });
+        res.json({ video });
+    } catch (e) {
+        return res.status(500).json({ error: "Internal server error" });
+    }
+});
 
 videoController.delete("/delete/:id", async (req, res) => {});
 

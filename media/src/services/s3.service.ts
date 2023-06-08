@@ -49,4 +49,19 @@ export class S3Service {
     public async presign(bucket: string, key: string) {
         return await this.s3c.presignedPutObject(bucket, key, 1800);
     }
+
+    public async missingFiles(bucket: string, keys: string[]) {
+        const promises = await Promise.all(
+            keys.map(async (x) => {
+                try {
+                    await this.s3c.statObject(bucket, x);
+                    return null;
+                } catch {
+                    return x;
+                }
+            })
+        );
+
+        return promises.filter((x) => x != null) as string[];
+    }
 }

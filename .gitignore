@@ -48,3 +48,5 @@ minio/
 **/_gql/*
 
 **/docs/**/*
+
+.todo

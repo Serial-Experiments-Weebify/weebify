@@ -37,4 +37,29 @@ export class VideoService {
 
         return { key, id };
     }
+
+    public async verify(id: string) {
+        const m = await V0Model.findById(id);
+
+        if (!m) {
+            return null;
+        }
+
+        const { sharedKeys, uniqueKeys } = m;
+
+        const missing = await this.s3.missingFiles(this.cfg.vars.S3_BUCKET, [
+            ...sharedKeys,
+            ...uniqueKeys,
+        ]);
+
+        if (missing.length > 0) {
+            m.status = VideoStatus.Failed;
+            await m.save();
+        } else {
+            m.status = VideoStatus.OK;
+            await m.save();
+        }
+
+        return { status: m.status, missingFiles: missing };
+    }
 }
