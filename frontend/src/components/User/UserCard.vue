@@ -7,7 +7,7 @@ const props = defineProps<{ user: SearchUser }>();
 
 const imageStyle = computed(() => {
     return {
-        background: `url('/cdn/pfp/${props.user.pfp}/tiny.webp')`,
+        background: `url('/cdn/weebify/pfp/${props.user.pfp}/tiny.webp')`,
     };
 });
 </script>

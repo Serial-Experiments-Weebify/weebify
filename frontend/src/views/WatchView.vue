@@ -23,7 +23,7 @@ const { result } = useQuery(
     <main>
         <video
             class="sane-width"
-            :src="`/cdn/media/${result?.VideoV0?.key ?? ''}`"
+            :src="`/cdn/weebify/media/${result?.VideoV0?.key ?? ''}`"
             controls
         ></video>
     </main>

@@ -9,9 +9,10 @@ import { MovieSchema } from './entities/movie.schema';
 import { MeiliSearchModule, MeiliSearchService } from 'nestjs-meilisearch';
 import { Video, VideoSchema } from './entities/video.entity';
 import { V0Schema } from './entities/v0.schema';
-import { WeebifyVideoFormat } from './enums/videoFormat.enum';
+import { WeebifyVideoType } from './enums/videoType.enum';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { V1Schema } from './entities/v1.schema';
 
 @Module({
     providers: [MediaResolver, MediaService],
@@ -105,7 +106,12 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
                     {
                         name: 'VideoV0',
                         schema: V0Schema,
-                        value: WeebifyVideoFormat.V0,
+                        value: WeebifyVideoType.V0,
+                    },
+                    {
+                        name: 'VideoV1',
+                        schema: V1Schema,
+                        value: WeebifyVideoType.V1,
                     },
                 ],
             },

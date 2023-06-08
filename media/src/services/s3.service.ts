@@ -39,7 +39,7 @@ export class S3Service {
     }
 
     public async verify() {
-        return await this.bucketsPresent(["pfp", "media", "cover"]);
+        return await this.bucketsPresent(["weebify"]);
     }
 
     public async uploadBuffer(bucket: string, key: string, buffer: Buffer) {

@@ -1,23 +1,21 @@
 import express from "express";
 import { Container } from "typedi";
-import sharp, { Sharp } from "sharp";
 import multer, { memoryStorage } from "multer";
 import { v4 as uuid } from "uuid";
 
-import { UserDocument } from "../user/user.model";
+import { UserDocument } from "../models/user.model";
 import { S3Service } from "../services/s3.service";
-import { AuthenticateUserByPfpToken } from "../user/pfpAuth.middleware";
+import { AuthenticateUserByPfpToken } from "../middleware/pfpAuth.middleware";
 import { WeebifyImage } from "../util/WeebifyImage";
-import { AuthenticateBySetCoverToken } from "../media/setCoverAuth";
-import { MediaDocument, mediaModel } from "../media/media.model";
-import { urlencoded } from "body-parser";
-import { JWTAuth, VideoJwt } from "../video/jwtAuth.middleware";
-import { videoV0Model } from "../video/video.model";
-import { Types } from "mongoose";
+import { AuthenticateBySetCoverToken } from "../middleware/coverAuth.middleware";
+import { MediaDocument } from "../models/media.model";
+import { urlencoded, json } from "body-parser";
 import { SearchService } from "../services/search.service";
-
+import { videoController } from "./video";
+import { ConfigService } from "../services/config.service";
 const s3 = Container.get(S3Service);
 const search = Container.get(SearchService);
+const conf = Container.get(ConfigService);
 
 const upload = multer({
     storage: memoryStorage(),
@@ -27,17 +25,19 @@ const upload = multer({
     },
 });
 
-export const media = express.Router();
+export const mediaController = express.Router();
 
-media.use(urlencoded({ extended: true }));
+const urlParser = urlencoded({ extended: true });
 
-media.post(
+mediaController.use("/video", videoController);
+
+mediaController.post(
     "/pfp",
+    urlParser,
     AuthenticateUserByPfpToken,
     upload.single("pfp"),
     async (req, res) => {
-        //@ts-ignore
-        const user: UserDocument = req.user;
+        const user = (req as any).user as UserDocument;
         const file = req.file?.buffer;
 
         if (!file || !user)
@@ -52,26 +52,26 @@ media.post(
 
         try {
             const key = uuid();
-            console.log(`Uploading new profile picture ${key} for ${user.id}`);
+            console.log(`Uploading new profile picture ${key} for ${user}`);
             pfp.toAspectRatio(1);
 
             const uploads = [
                 (async () =>
                     s3.uploadBuffer(
-                        "pfp",
-                        `${key}/full.webp`,
+                        conf.vars.S3_BUCKET,
+                        `pfp/${key}/full.webp`,
                         await pfp.export()
                     ))(),
                 (async () =>
                     s3.uploadBuffer(
-                        "pfp",
-                        `${key}/tiny.webp`,
+                        conf.vars.S3_BUCKET,
+                        `pfp/${key}/tiny.webp`,
                         await pfp.getImageWithMaxHeight(64)
                     ))(),
                 (async () =>
                     s3.uploadBuffer(
-                        "pfp",
-                        `${key}/mid.webp`,
+                        conf.vars.S3_BUCKET,
+                        `pfp/${key}/mid.webp`,
                         await pfp.getImageWithMaxHeight(256)
                     ))(),
             ];
@@ -95,13 +95,13 @@ media.post(
     }
 );
 
-media.post(
+mediaController.post(
     "/cover",
+    urlParser,
     AuthenticateBySetCoverToken,
     upload.single("cover"),
     async (req, res) => {
-        //@ts-ignore
-        const media: MediaDocument = req.media;
+        const media: MediaDocument = (req as any).media as MediaDocument;
         const file = req.file?.buffer;
 
         if (!file || !media)
@@ -125,14 +125,14 @@ media.post(
             const uploads = [
                 (async () =>
                     s3.uploadBuffer(
-                        "cover",
-                        `${key}/full.webp`,
+                        conf.vars.S3_BUCKET,
+                        `cover/${key}/full.webp`,
                         await cover.export()
                     ))(),
                 (async () =>
                     s3.uploadBuffer(
-                        "cover",
-                        `${key}/thumb.webp`,
+                        conf.vars.S3_BUCKET,
+                        `cover/${key}/thumb.webp`,
                         await cover.getImageWithMaxHeight(300)
                     ))(),
             ];
@@ -165,64 +165,3 @@ media.post(
         }
     }
 );
-
-media.post("/video", JWTAuth, async (req, res) => {
-    if (typeof req.body.key !== "string")
-        return res.status(400).send({ error: "Bad key." });
-    try {
-        const m = (req as any as VideoJwt).media;
-        if (
-            typeof m.kind != "string" ||
-            typeof m.mid != "string" ||
-            typeof m.eid == "object"
-        )
-            return res.status(400).send({ error: "Bad JWT." });
-
-        const selectedMedia = await mediaModel.findById(m.mid);
-        if (!selectedMedia)
-            return res.status(400).send({ error: "Bad media ID" });
-
-        // create video
-        const v = await videoV0Model.create({ key: req.body.key });
-        if (!v) throw "fuck";
-
-        const url: string = await s3.presign("media", req.body.key);
-        const key = new URL(url);
-        key.protocol = "";
-        key.hostname = "";
-        key.port = "";
-
-        // update media
-        console.log(m.kind);
-        switch (m.kind) {
-            case "TV":
-                if (!m.eid)
-                    return res.status(400).send({ error: "Bad episode ID" });
-
-                const ep = selectedMedia?.episodes?.find((x) => {
-                    return x._id.toString() == m.eid!;
-                });
-
-                if (!ep)
-                    return res.status(400).send({ error: "Bad episode ID" });
-
-                ep.mediaId = v._id;
-
-                break;
-            case "MOVIE":
-                selectedMedia.mediaId = v._id;
-                break;
-        }
-        await selectedMedia.save();
-
-        return res.send({
-            error: null,
-            key: key.toString().replace(/https?:\/\/localhost/, ""),
-        });
-    } catch {
-        if (typeof req.body.key !== "string")
-            return res.status(500).send({ error: "Died" });
-    }
-
-    return res.status(500).send({ error: "Died" });
-});

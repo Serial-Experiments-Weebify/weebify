@@ -4,13 +4,12 @@ import { Service } from "typedi";
 @Service()
 export class ConfigService {
     static VARS = {
-        // Media JWT
-        MEDIA_JWT_KEY: { defaultValue: "" },
         // Web server config
         PORT: { transformer: portNumber, defaultValue: 3330 },
         // Database config
         MONGO: { defaultValue: null },
         // S3 config
+        S3_BUCKET: { defaultValue: "weebify" },
         S3_ENDPOINT: { defaultValue: null },
         S3_PORT: { transformer: portNumber, defaultValue: null },
         S3_ACCESS_KEY: { defaultValue: "" },

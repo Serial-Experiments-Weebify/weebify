@@ -56,14 +56,14 @@ const canEdit = computed(
 
 const bgStyle = computed(() => {
     return {
-        background: `linear-gradient(to bottom, #14131c00, #14131c), url('/cdn/cover/${result.value?.mediaById.cover}/full.webp')`,
+        background: `linear-gradient(to bottom, #14131c00, #14131c), url('/cdn/weebify/cover/${result.value?.mediaById.cover}/full.webp')`,
         backgroundColor: result.value?.mediaById.coverColor ?? '#0000',
     };
 });
 
 const coverStyle = computed(() => {
     return {
-        background: `url('/cdn/cover/${result.value?.mediaById.cover}/full.webp')`,
+        background: `url('/cdn/weebify/cover/${result.value?.mediaById.cover}/full.webp')`,
         backgroundColor: result.value?.mediaById.coverColor ?? '#888',
     };
 });

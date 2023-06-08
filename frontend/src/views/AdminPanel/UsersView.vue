@@ -115,7 +115,11 @@ const users = computed(() => {
             alternating
         >
             <template #item-pfp="{ pfp }">
-                <img :src="`/cdn/pfp/${pfp}/tiny.webp`" alt="" class="pfp" />
+                <img
+                    :src="`/cdn/weebify/pfp/${pfp}/tiny.webp`"
+                    alt=""
+                    class="pfp"
+                />
             </template>
             <template #item-username="{ username }">
                 <RouterLink

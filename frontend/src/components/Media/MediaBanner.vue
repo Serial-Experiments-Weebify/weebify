@@ -11,7 +11,7 @@ const props = defineProps<{
 
 const imageStyle = computed(() => {
     return {
-        background: ` url('/cdn/cover/${props.media.cover}/full.webp')`,
+        background: ` url('/cdn/weebify/cover/${props.media.cover}/full.webp')`,
         backgroundColor: props.media.coverColor ?? '#888',
     };
 });

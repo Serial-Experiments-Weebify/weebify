@@ -8,7 +8,7 @@ const props = defineProps<{
 
 const imageStyle = computed(() => {
     return {
-        background: `url('/cdn/cover/${props.media.cover}/thumb.webp')`,
+        background: `url('/cdn/weebify/cover/${props.media.cover}/thumb.webp')`,
         backgroundColor: props.media.coverColor ?? '#888',
     };
 });

@@ -83,7 +83,7 @@ const canEdit = computed(
                 <div class="nav-icon-link">
                     <!-- TODO: fix CDN -->
                     <img
-                        :src="`/cdn/pfp/${auth.me.pfp}/tiny.webp`"
+                        :src="`/cdn/weebify/pfp/${auth.me.pfp}/tiny.webp`"
                         alt="Profile picture"
                     />
                     {{ auth.me.username }}

@@ -181,7 +181,7 @@ const usernameEmail = computed(() => {
                 <img
                     :src="
                         result?.user.pfp
-                            ? `/cdn/pfp/${result.user.pfp}/full.webp`
+                            ? `/cdn/weebify/pfp/${result.user.pfp}/full.webp`
                             : ''
                     "
                     alt="Profile picture"
