@@ -58,14 +58,6 @@ export class UsersResolver {
     }
 
     @UseGuards(AuthOnlyGuard)
-    @Query(() => [User], { name: 'users' })
-    @Roles(UserRole.ADMIN, UserRole.GOD, UserRole.MODERATOR)
-    async findAll() {
-        const users = await this.usersService.findAll();
-        return users;
-    }
-
-    @UseGuards(AuthOnlyGuard)
     @Mutation(() => String)
     @Roles(UserRole.ADMIN, UserRole.GOD, UserRole.MODERATOR)
     async generateInviteCode(
@@ -124,13 +116,6 @@ export class UsersResolver {
         @Args('id', { nullable: true }) id?: string,
     ) {
         return await this.usersService.createPfpToken(id ?? user.id);
-    }
-
-    @UseGuards(AuthOnlyGuard)
-    @Mutation(() => Boolean)
-    @Roles(UserRole.GOD, UserRole.ADMIN)
-    async rebuildUserSearch() {
-        return await this.usersService.rebuildSearch();
     }
 
     @UseGuards(AuthOnlyGuard)

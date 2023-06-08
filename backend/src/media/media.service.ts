@@ -42,6 +42,8 @@ export class MediaService {
         @InjectModel('VideoV0')
         protected v0Model: Model<VideoV0Document>,
 
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
         @InjectMeiliSearch()
         protected meiliSearch: MeiliSearch,
 

@@ -4,8 +4,6 @@ import { UsersResolver } from './users.resolver';
 import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from './entities/user.entity';
 import { MeiliSearchModule, MeiliSearchService } from 'nestjs-meilisearch';
-import { AuthService } from 'src/auth/auth.service';
-import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
     imports: [
@@ -42,5 +40,6 @@ import { AuthModule } from 'src/auth/auth.module';
         ]),
     ],
     providers: [UsersResolver, UsersService],
+    exports: [UsersService],
 })
 export class UsersModule {}

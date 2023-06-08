@@ -122,14 +122,28 @@ type VideoV0 {
   key: String!
 }
 
+type APIKey {
+  id: String!
+  name: String!
+  owner: User!
+}
+
+type APIKeyWithKey {
+  id: String!
+  name: String!
+  owner: User!
+  key: String!
+}
+
 type Query {
   me: User
   mediaById(id: String!): Media!
   homeRecomendations: HomeRecomendations!
   VideoV0(id: String!): VideoV0
-  users: [User!]!
   user(idOrUsername: String!): User!
   followed: [String!]!
+  listAPIKeys: [APIKey!]!
+  users: [User!]!
 }
 
 type Mutation {
@@ -145,17 +159,19 @@ type Mutation {
   removeEpisode(mediaId: String!, episodeId: String!): Boolean!
   updateEpisode(mediaId: String!, episodeId: String!, episode: UpdateEpisode!): Episode!
   uploadMedia(mediaId: String!, episodeId: String): String!
-  rebuildMediaSearch: Boolean!
   signUp(createUserInput: CreateUserInput!): User!
   generateInviteCode(id: String): String!
   updateUser(updateUserInput: UpdateUserInput!): User!
   deleteUser(id: String!): Boolean!
   setRole(id: String!, role: UserRole!): Boolean!
   updatePfp(id: String): String!
-  rebuildUserSearch: Boolean!
   follow(uid: String!): String!
   unfollow(uid: String!): String!
   revokeInvite(invite: String!, user: String): Boolean!
+  rebuildUserSearch: Boolean!
+  rebuildMediaSearch: Boolean!
+  createAPIKey(name: String!): APIKeyWithKey!
+  deleteAPIKey(id: String!): Boolean!
 }
 
 input LoginInput {

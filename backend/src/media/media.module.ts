@@ -111,5 +111,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
             },
         ]),
     ],
+    exports: [MediaService],
 })
 export class MediaModule {}

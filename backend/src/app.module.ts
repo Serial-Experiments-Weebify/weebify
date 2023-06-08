@@ -15,6 +15,7 @@ import { RolesGuard } from './auth/roles/role.guard';
 import { authenticateUser } from './auth/auth.middleware';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MeiliSearchModule } from 'nestjs-meilisearch';
+import { ManagementModule } from './management/management.module';
 
 @Module({
     imports: [
@@ -54,6 +55,7 @@ import { MeiliSearchModule } from 'nestjs-meilisearch';
                 };
             },
         }),
+        ManagementModule,
     ],
     providers: [{ provide: APP_GUARD, useClass: RolesGuard }],
 })

@@ -119,12 +119,6 @@ export class MediaResolver {
         return this.mediaService.getVideoUploadToken(mediaId, episodeId);
     }
 
-    @Mutation(() => Boolean)
-    @Roles(UserRole.GOD, UserRole.ADMIN)
-    async rebuildMediaSearch() {
-        return await this.mediaService.rebuildSearch();
-    }
-
     @Query(() => VideoV0, { nullable: true })
     async VideoV0(@Args('id', { type: () => String }) id: string) {
         return await this.mediaService.resolveV0(id);
