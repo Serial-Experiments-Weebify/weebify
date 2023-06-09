@@ -1,7 +1,7 @@
-import { Service, Inject } from "typedi";
-import { ConfigService } from "./config.service";
+import { Service, Inject } from 'typedi';
+import { ConfigService } from './config.service';
 
-import { MeiliSearch } from "meilisearch";
+import { MeiliSearch } from 'meilisearch';
 
 @Service()
 export class SearchService {
@@ -17,7 +17,7 @@ export class SearchService {
     public async updateSingle(indexUID: string, update: Record<string, any>) {
         const index = await this.meili.getIndex(indexUID);
         return index.updateDocuments([update], {
-            primaryKey: "id",
+            primaryKey: 'id',
         });
     }
 }

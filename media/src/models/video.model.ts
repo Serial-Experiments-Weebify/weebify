@@ -1,24 +1,25 @@
 import {
     DocumentType,
+    Severity,
     getDiscriminatorModelForClass,
     getModelForClass,
     modelOptions,
     prop,
-} from "@typegoose/typegoose";
+} from '@typegoose/typegoose';
 
 export enum WeebifyVideoType {
-    V0 = "V0",
-    V1 = "V1",
+    V0 = 'V0',
+    V1 = 'V1',
 }
 
 export enum VideoStatus {
-    Waiting = "WAITING",
-    OK = "OK",
-    Failed = "FAILED",
+    Waiting = 'WAITING',
+    OK = 'OK',
+    Failed = 'FAILED',
 }
 
 @modelOptions({
-    schemaOptions: { collection: "videos", discriminatorKey: "type" },
+    schemaOptions: { collection: 'videos', discriminatorKey: 'type' },
 })
 class Video {
     @prop()
@@ -66,6 +67,7 @@ export interface V1Chapter {
     end: number;
 }
 
+@modelOptions({ options: { allowMixed: Severity.ALLOW } })
 class V1 extends Video {
     @prop({ type: [Object] })
     subtitles: V1Subtitles[];
@@ -88,10 +90,10 @@ export const VideoModel = getModelForClass(Video),
     V0Model = getDiscriminatorModelForClass(
         VideoModel,
         V0,
-        WeebifyVideoType.V0
+        WeebifyVideoType.V0,
     ),
     V1Model = getDiscriminatorModelForClass(
         VideoModel,
         V1,
-        WeebifyVideoType.V1
+        WeebifyVideoType.V1,
     );

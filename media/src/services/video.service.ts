@@ -1,14 +1,21 @@
-import { Service, Inject } from "typedi";
-import { ConfigService } from "./config.service";
-import { S3Service } from "./s3.service";
-import { CreateV0 } from "../validators/createV0.in";
-import { V0Model, VideoStatus, WeebifyVideoType } from "../models/video.model";
+import { Service, Inject } from 'typedi';
+import { ConfigService } from './config.service';
+import { S3Service } from './s3.service';
+import { CreateV0 } from '../validators/createV0.in';
+import {
+    V0Model,
+    V1Model,
+    VideoModel,
+    VideoStatus,
+    WeebifyVideoType,
+} from '../models/video.model';
+import { CreateV1 } from '../validators/createV1.in';
 
 @Service()
 export class VideoService {
     constructor(
         @Inject() private cfg: ConfigService,
-        @Inject() private s3: S3Service
+        @Inject() private s3: S3Service,
     ) {}
 
     public async createV0(args: CreateV0) {
@@ -22,7 +29,7 @@ export class VideoService {
 
             sharedKeys: [],
             uniqueKeys: [],
-            video: "",
+            video: '',
         });
 
         const id = m._id.toHexString();
@@ -38,8 +45,90 @@ export class VideoService {
         return { key, id };
     }
 
+    public async createV1(args: CreateV1) {
+        const m = new V1Model({
+            job: args.job,
+
+            type: WeebifyVideoType.V1,
+            status: VideoStatus.Waiting,
+
+            created: new Date(),
+
+            chapters: args.chapters,
+            subtitles: args.subtitles,
+
+            fontMap: args.fontMap,
+
+            resolutions: args.videos.map((v) => v.resolution),
+        });
+
+        const id = m._id.toHexString();
+
+        const basePath = `video/${id}`;
+
+        const uniqueFiles = [
+            // [local src, s3 dest]
+
+            // fallback video
+            ['out/fallback.mp4', `${basePath}/fallback.mp4`],
+            // DASH manifest
+            ['out/manifest.mpd', `${basePath}/manifest.mpd`],
+
+            ...args.videos.map((v) => [
+                `out/${v.file}`,
+                `${basePath}/${v.file}`,
+            ]),
+
+            ...args.audio.map((a) => [
+                `out/${a.file}`,
+                `${basePath}/${a.file}`,
+            ]),
+
+            ...args.subtitles.map((s) => [
+                `out/${s.file}`,
+                `${basePath}/${s.file}`,
+            ]),
+        ];
+        m.uniqueKeys = uniqueFiles.map(([, dest]) => dest);
+
+        const sharedFiles = [
+            // [local src, s3 dest]
+            ...Object.entries(args.fontMap).map(([, filename]) => [
+                `fonts/${filename}`,
+                `fonts/${filename}`,
+            ]),
+        ];
+        m.sharedKeys = sharedFiles.map(([, dest]) => dest);
+
+        const missingSharedFiles = await this.s3.missingFiles(
+            this.cfg.vars.S3_BUCKET,
+            sharedFiles.map(([, dest]) => dest),
+        );
+
+        const keysToSign = [
+            ...uniqueFiles,
+            ...sharedFiles.filter(([, dest]) =>
+                missingSharedFiles.includes(dest),
+            ),
+        ];
+
+        const keys = await Promise.all(
+            keysToSign.map(async ([src, dest]) => {
+                const key = await this.s3.presign(
+                    this.cfg.vars.S3_BUCKET,
+                    dest,
+                );
+                return { src, key };
+            }),
+        );
+
+        await m.save();
+
+        return { keys, id };
+    }
+
     public async verify(id: string) {
-        const m = await V0Model.findById(id);
+        const m = await VideoModel.findById(id);
 
         if (!m) {
             return null;

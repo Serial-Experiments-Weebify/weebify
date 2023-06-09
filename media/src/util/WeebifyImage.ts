@@ -1,5 +1,5 @@
-import sharp from "sharp";
-import getColors from "get-image-colors";
+import sharp from 'sharp';
+import getColors from 'get-image-colors';
 
 const ALLOW_ANIMATED = true;
 
@@ -26,14 +26,14 @@ export class WeebifyImage {
         minW: number,
         maxW: number,
         minH?: number,
-        maxH?: number
+        maxH?: number,
     ): Promise<boolean> {
         if (!minH) minH = minW;
         if (!maxH) maxH = maxW;
 
         this.meta = await this.img.metadata();
         if (!this.meta.width || !this.meta.height) {
-            console.warn("Image is missing width/height");
+            console.warn('Image is missing width/height');
             return false;
         }
         this.valid =
@@ -43,7 +43,7 @@ export class WeebifyImage {
     }
 
     public async export(): Promise<Buffer> {
-        if (!this.valid) throw "Invalid image";
+        if (!this.valid) throw 'Invalid image';
         return await this.img
             .webp({
                 quality: 100,
@@ -55,7 +55,7 @@ export class WeebifyImage {
     public async getColor(saturationBased?: boolean): Promise<string> {
         //get low effort png buffer
         const b = await this.img.png({ effort: 5 }).toBuffer();
-        const colors = await getColors(b, { count: 3, type: "image/png" });
+        const colors = await getColors(b, { count: 3, type: 'image/png' });
 
         if (saturationBased) {
             //sort so that the most satureated color is first
@@ -67,13 +67,13 @@ export class WeebifyImage {
 
     public get currentRatio() {
         if (!this.valid || !this.meta.width || !this.meta.height)
-            throw "Invalid image";
+            throw 'Invalid image';
         return this.meta.width / this.meta.height;
     }
 
     public toAspectRatio(targetRatio: number) {
         if (!this.valid || !this.meta.width || !this.meta.height)
-            throw "Invalid image";
+            throw 'Invalid image';
         let dW = 0,
             dH = 0;
 
@@ -90,16 +90,16 @@ export class WeebifyImage {
             dW = makeEven(targetRatio * dH);
         }
 
-        this.img.resize(dW, dH, { fit: "cover" });
+        this.img.resize(dW, dH, { fit: 'cover' });
     }
 
     public async getImageWithMaxHeight(
         newHeight: number,
-        quality: number = 80,
-        effort = 4
+        quality = 80,
+        effort = 4,
     ) {
         if (!this.valid || !this.meta.width || !this.meta.height)
-            throw "Invalid image";
+            throw 'Invalid image';
 
         const scalingFactor =
             newHeight / (this.meta.pageHeight ?? this.meta.height);

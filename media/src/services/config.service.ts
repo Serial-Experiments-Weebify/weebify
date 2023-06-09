@@ -1,5 +1,5 @@
-import { envVars, portNumber } from "../util/env";
-import { Service } from "typedi";
+import { envVars, portNumber } from '../util/env';
+import { Service } from 'typedi';
 
 @Service()
 export class ConfigService {
@@ -9,21 +9,21 @@ export class ConfigService {
         // Database config
         MONGO: { defaultValue: null },
         // S3 config
-        S3_BUCKET: { defaultValue: "weebify" },
+        S3_BUCKET: { defaultValue: 'weebify' },
         S3_ENDPOINT: { defaultValue: null },
         S3_PORT: { transformer: portNumber, defaultValue: null },
-        S3_ACCESS_KEY: { defaultValue: "" },
-        S3_SECRET: { defaultValue: "" },
+        S3_ACCESS_KEY: { defaultValue: '' },
+        S3_SECRET: { defaultValue: '' },
         S3_SSL: {
             transformer: (v: string) =>
-                ["1", "true", "yes"].includes(v.toLowerCase()),
+                ['1', 'true', 'yes'].includes(v.toLowerCase()),
             defaultValue: false,
         },
         SEARCH_HOST: {
-            defaultValue: "",
+            defaultValue: '',
         },
         SEARCH_KEY: {
-            defaultValue: "",
+            defaultValue: '',
         },
     };
 

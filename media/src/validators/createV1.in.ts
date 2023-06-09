@@ -3,15 +3,12 @@ import {
     IsInt,
     IsNotEmpty,
     IsNumber,
-    Length,
-    Matches,
     Min,
     ValidateNested,
-    validate,
-} from "class-validator";
-import { CreateV0 } from "./createV0.in";
-import { IsStringMap } from "./custom/isStringMap";
-import { plainToClass } from "class-transformer";
+} from 'class-validator';
+
+import { CreateV0 } from './createV0.in';
+import { IsStringMap } from './custom/isStringMap';
 
 class CreateV1Subtitles extends CreateV0 {
     @IsNotEmpty()
@@ -50,6 +47,25 @@ class CreateV1Chapter {
     title: string;
 }
 
+class CreateV1Audio {
+    @IsNotEmpty()
+    lang: string;
+
+    @IsBoolean()
+    default: boolean;
+
+    @IsNotEmpty()
+    file: string;
+}
+
+class CreateV1Video {
+    @ValidateNested()
+    resolution: CreateV1Resolution;
+
+    @IsNotEmpty()
+    file: string;
+}
+
 export class CreateV1 extends CreateV0 {
     @ValidateNested({ each: true })
     subtitles: CreateV1Subtitles[];
@@ -58,7 +74,10 @@ export class CreateV1 extends CreateV0 {
     fontMap: Record<string, string>;
 
     @ValidateNested({ each: true })
-    resolutions: CreateV1Resolution[];
+    audio: CreateV1Audio[];
+
+    @ValidateNested({ each: true })
+    videos: CreateV1Video[];
 
     @ValidateNested({ each: true })
     chapters: CreateV1Chapter[];

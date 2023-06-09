@@ -1,4 +1,4 @@
-import { Length, Matches } from "class-validator";
+import { Length, Matches } from 'class-validator';
 
 export class CreateV0 {
     @Length(3, 120)

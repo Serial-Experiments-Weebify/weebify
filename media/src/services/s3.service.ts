@@ -1,7 +1,7 @@
-import { Service, Inject } from "typedi";
-import { ConfigService } from "./config.service";
+import { Service, Inject } from 'typedi';
+import { ConfigService } from './config.service';
 
-import { Client } from "minio";
+import { Client } from 'minio';
 
 @Service()
 export class S3Service {
@@ -22,24 +22,24 @@ export class S3Service {
 
     protected async bucketsPresent(buckets: string[]) {
         const bucketsAvailable = (await this.s3c.listBuckets()).map(
-            (x) => x.name
+            (x) => x.name,
         );
         const missingBuckets = buckets.filter(
-            (x) => !bucketsAvailable.includes(x)
+            (x) => !bucketsAvailable.includes(x),
         );
 
         if (missingBuckets.length == 0) {
-            console.log("All required buckets present");
+            console.log('All required buckets present');
             return true;
         } else {
-            console.error("Missing the following buckets:");
+            console.error('Missing the following buckets:');
             console.error(missingBuckets);
             return false;
         }
     }
 
     public async verify() {
-        return await this.bucketsPresent(["weebify"]);
+        return await this.bucketsPresent(['weebify']);
     }
 
     public async uploadBuffer(bucket: string, key: string, buffer: Buffer) {
@@ -59,7 +59,7 @@ export class S3Service {
                 } catch {
                     return x;
                 }
-            })
+            }),
         );
 
         return promises.filter((x) => x != null) as string[];

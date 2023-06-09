@@ -1,4 +1,4 @@
-import { DocumentType, getModelForClass, prop } from "@typegoose/typegoose";
+import { DocumentType, getModelForClass, prop } from '@typegoose/typegoose';
 
 class Media {
     @prop()
