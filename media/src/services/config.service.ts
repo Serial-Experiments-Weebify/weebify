@@ -6,8 +6,13 @@ export class ConfigService {
     static VARS = {
         // Web server config
         PORT: { transformer: portNumber, defaultValue: 3330 },
+
+        // Auth config
+        AUTH_JWT_KEY: { defaultValue: '' },
+
         // Database config
         MONGO: { defaultValue: null },
+
         // S3 config
         S3_BUCKET: { defaultValue: 'weebify' },
         S3_ENDPOINT: { defaultValue: null },
@@ -19,6 +24,8 @@ export class ConfigService {
                 ['1', 'true', 'yes'].includes(v.toLowerCase()),
             defaultValue: false,
         },
+
+        // MeiliSearch config
         SEARCH_HOST: {
             defaultValue: '',
         },

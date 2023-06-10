@@ -23,6 +23,11 @@ import { Application } from 'express';
 // 30 days
 const SESSION_DURATION = 30 * 24 * 60 * 60 * 1000;
 
+type WeebfiyJWT = {
+    uid: string | any;
+    sid: string | any;
+};
+
 @Injectable()
 export class AuthService {
     /**
@@ -111,10 +116,7 @@ export class AuthService {
     ): Promise<{ user: UserDocument | null; session: string | null }> {
         if (!token) return { user: null, session: null };
 
-        const data = this.jwt.decode(token, { json: true }) as {
-            uid: unknown;
-            sid: unknown;
-        };
+        const data = await this.jwt.verifyAsync<WeebfiyJWT>(token);
 
         if (typeof data?.uid !== 'string' || typeof data?.sid !== 'string')
             return { user: null, session: null };
