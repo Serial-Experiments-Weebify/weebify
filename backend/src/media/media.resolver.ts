@@ -13,7 +13,6 @@ import { UpdateMediaInput } from './dto/update-media.input';
 import { CreateMediaInput } from './dto/create-media.input';
 import { EpisodeStatus } from './enums/episodeStatus.enum';
 import { HomeRecomendations } from './dto/home.out';
-import { VideoV0 } from './dto/video.out';
 
 @UseGuards(AuthOnlyGuard)
 @Resolver(() => Media)
@@ -107,20 +106,5 @@ export class MediaResolver {
             episodeId,
             episode,
         );
-    }
-
-    @Mutation(() => String)
-    @Roles(UserRole.GOD, UserRole.ADMIN)
-    async uploadMedia(
-        @Args('mediaId', { type: () => String }) mediaId: string,
-        @Args('episodeId', { type: () => String, nullable: true })
-        episodeId?: string,
-    ) {
-        return this.mediaService.getVideoUploadToken(mediaId, episodeId);
-    }
-
-    @Query(() => VideoV0, { nullable: true })
-    async VideoV0(@Args('id', { type: () => String }) id: string) {
-        return await this.mediaService.resolveV0(id);
     }
 }

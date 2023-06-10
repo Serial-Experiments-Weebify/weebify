@@ -16,13 +16,12 @@ import { authenticateUser } from './auth/auth.middleware';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MeiliSearchModule } from 'nestjs-meilisearch';
 import { ManagementModule } from './management/management.module';
+import { VideoModule } from './video/video.module';
 
 @Module({
     imports: [
         ConfigModule.forRoot({ isGlobal: true }),
-        AuthModule,
-        MediaModule,
-        UsersModule,
+
         MongooseModule.forRootAsync({
             imports: [ConfigModule],
             inject: [ConfigService],
@@ -55,7 +54,11 @@ import { ManagementModule } from './management/management.module';
                 };
             },
         }),
+        AuthModule,
+        MediaModule,
+        UsersModule,
         ManagementModule,
+        VideoModule,
     ],
     providers: [{ provide: APP_GUARD, useClass: RolesGuard }],
 })

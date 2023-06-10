@@ -11,7 +11,7 @@ import {
     MovieMediaDocument,
     TVMediaDocument,
 } from './entities/media.entity';
-import { Document, FilterQuery } from 'mongoose';
+import { Document } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { MediaKind } from './enums/mediaKind.enum';
@@ -24,8 +24,6 @@ import { EpisodeStatus } from './enums/episodeStatus.enum';
 import MeiliSearch from 'meilisearch';
 import { InjectMeiliSearch } from 'nestjs-meilisearch';
 import { MediaStatus } from './enums/mediaStatus.enum';
-import { JwtService } from '@nestjs/jwt';
-import { VideoV0Document } from './entities/video.entity';
 
 @Injectable()
 export class MediaService {
@@ -39,15 +37,10 @@ export class MediaService {
         @InjectModel('moviemedia')
         protected movieMediaModel: Model<MovieMediaDocument>,
 
-        @InjectModel('VideoV0')
-        protected v0Model: Model<VideoV0Document>,
-
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //@ts-ignore
         @InjectMeiliSearch()
         protected meiliSearch: MeiliSearch,
-
-        protected jwt: JwtService,
     ) {}
 
     async create(createMediaInput: CreateMediaInput) {
@@ -219,32 +212,6 @@ export class MediaService {
             { $addFields: { id: '$_id' } },
             { $unset: ['_id', 'episodes'] },
         ]);
-    }
-
-    async getVideoUploadToken(mid: string, eid?: string) {
-        const f: FilterQuery<MediaDocument> = { id: mid };
-        if (eid) {
-            f['kind'] = MediaKind.TV;
-            f['episodes._id'] = eid;
-        }
-        const a = await this.mediaModel.find(f);
-
-        if (!a) {
-            throw new NotFoundException('Media/Episode does not exist');
-        }
-
-        return this.jwt.sign(
-            {
-                kind: eid ? MediaKind.TV : MediaKind.MOVIE,
-                mid,
-                eid,
-            },
-            { expiresIn: '5m' },
-        );
-    }
-
-    async resolveV0(id: string) {
-        return await this.v0Model.findById(id);
     }
 
     async rebuildSearch() {

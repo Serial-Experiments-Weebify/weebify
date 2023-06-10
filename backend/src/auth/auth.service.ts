@@ -6,12 +6,7 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { verify } from 'argon2';
 import { Model } from 'mongoose';
-import {
-    User,
-    UserDocument,
-    Session,
-    SessionSchema,
-} from 'src/users/entities/user.entity';
+import { User, UserDocument, Session } from 'src/users/entities/user.entity';
 import { Types } from 'mongoose';
 import { LoginInput } from './dto/login.input';
 import { JwtService } from '@nestjs/jwt';
@@ -39,6 +34,8 @@ export class AuthService {
         @InjectModel('User')
         private userModel: Model<UserDocument>,
 
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
         @InjectMeiliSearch()
         private meiliSearch: MeiliSearch,
 

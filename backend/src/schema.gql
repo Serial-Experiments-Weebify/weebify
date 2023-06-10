@@ -118,10 +118,6 @@ type HomeRecomendations {
   recent: [MediaPreview!]!
 }
 
-type VideoV0 {
-  key: String!
-}
-
 type APIKey {
   id: String!
   name: String!
@@ -135,15 +131,29 @@ type APIKeyWithKey {
   key: String!
 }
 
+type MediaRef {
+  mediaId: String!
+  episodeId: String
+}
+
+type AdminVideo {
+  id: String!
+  job: String!
+  status: String!
+  type: String!
+  created: DateTime!
+  linkedMedia: [MediaRef!]!
+}
+
 type Query {
   me: User
   mediaById(id: String!): Media!
   homeRecomendations: HomeRecomendations!
-  VideoV0(id: String!): VideoV0
   user(idOrUsername: String!): User!
   followed: [String!]!
   listAPIKeys: [APIKey!]!
   users: [User!]!
+  videos: [AdminVideo!]!
 }
 
 type Mutation {
@@ -158,7 +168,6 @@ type Mutation {
   quickFill(mediaId: String!, count: Int!, status: EpisodeStatus!): Media!
   removeEpisode(mediaId: String!, episodeId: String!): Boolean!
   updateEpisode(mediaId: String!, episodeId: String!, episode: UpdateEpisode!): Episode!
-  uploadMedia(mediaId: String!, episodeId: String): String!
   signUp(createUserInput: CreateUserInput!): User!
   generateInviteCode(id: String): String!
   updateUser(updateUserInput: UpdateUserInput!): User!
