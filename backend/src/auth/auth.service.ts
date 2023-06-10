@@ -6,7 +6,13 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { verify } from 'argon2';
 import { Model } from 'mongoose';
-import { User, UserDocument, Session } from 'src/users/entities/user.entity';
+import {
+    User,
+    UserDocument,
+    Session,
+    SessionSchema,
+} from 'src/users/entities/user.entity';
+import { Types } from 'mongoose';
 import { LoginInput } from './dto/login.input';
 import { JwtService } from '@nestjs/jwt';
 import { InjectMeiliSearch } from 'nestjs-meilisearch';
@@ -27,9 +33,6 @@ export class AuthService {
     constructor(
         @InjectModel('User')
         private userModel: Model<UserDocument>,
-
-        @InjectModel('Session')
-        private sessionModel: Model<Session>,
 
         @InjectMeiliSearch()
         private meiliSearch: MeiliSearch,
@@ -63,11 +66,15 @@ export class AuthService {
             throw new UnauthorizedException('Incorrect password or username.');
         }
 
-        const session = new this.sessionModel();
+        const session = new Session();
+        if (!session.id) {
+            console.error('Session ID not set!!!');
+            session.id = new Types.ObjectId();
+        }
         const expiration = new Date(Date.now() + SESSION_DURATION);
         const key = await this.meiliSearch.createKey({
             name: `Search key for ${user.username}`,
-            description: `Session: ${session._id}`,
+            description: `Session: ${session.id}`,
             expiresAt: expiration,
             actions: ['search'],
             indexes: ['*'],
@@ -83,7 +90,7 @@ export class AuthService {
         await user.save();
 
         const jwt = this.jwt.sign(
-            { uid: user.id, sid: session._id },
+            { uid: user.id, sid: session.id },
             { expiresIn: SESSION_DURATION },
         );
 
@@ -94,7 +101,7 @@ export class AuthService {
         const user = await this.userModel.findById(uid);
         if (!user) return;
 
-        user.sessions = user.sessions.filter((s) => !s._id.equals(sid));
+        user.sessions = user.sessions.filter((s) => !s.id.equals(sid));
 
         await user.save();
     }
@@ -132,7 +139,7 @@ export class AuthService {
             await this.userModel.findOneAndUpdate(
                 {
                     _id: uid,
-                    'sessions._id': sid,
+                    'sessions.id': sid,
                 },
                 {
                     'sessions.$.ipAddress': ip,
@@ -158,7 +165,7 @@ export class AuthService {
 
         //remove session at index 1
         const sessionIndex = userWithSession.sessions.findIndex((s) =>
-            s._id.equals(sid),
+            s.id.equals(sid),
         );
         const session = userWithSession.sessions.splice(sessionIndex, 1)[0];
 

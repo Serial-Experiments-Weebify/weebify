@@ -209,14 +209,14 @@ export class UsersResolver {
 
         return userO.sessions.map(
             ({
-                _id,
+                id,
                 expiresAt,
                 ipAddress,
                 lastAccessed,
                 searchKey,
                 userAgent,
             }) => ({
-                sid: _id,
+                sid: id,
                 expiresAt,
                 ipAddress,
                 lastAccessed,

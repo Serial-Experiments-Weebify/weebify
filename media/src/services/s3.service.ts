@@ -2,6 +2,7 @@ import { Service, Inject } from 'typedi';
 import { ConfigService } from './config.service';
 
 import { Client } from 'minio';
+import { BucketItem } from 'minio';
 
 @Service()
 export class S3Service {
@@ -63,5 +64,22 @@ export class S3Service {
         );
 
         return promises.filter((x) => x != null) as string[];
+    }
+
+    public listKeys(bucket: string, prefix: string): Promise<string[]> {
+        return new Promise((resolve, reject) => {
+            const stream = this.s3c.listObjectsV2(bucket, prefix, true);
+            const accumulator: string[] = [];
+
+            stream.addListener('data', (c: BucketItem) =>
+                accumulator.push(c.name),
+            );
+            stream.addListener('close', () => resolve(accumulator));
+            stream.addListener('error', reject);
+        });
+    }
+
+    public massDelete(bucket: string, keys: string[]) {
+        return this.s3c.removeObjects(bucket, keys);
     }
 }

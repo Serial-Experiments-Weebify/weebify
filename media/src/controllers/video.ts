@@ -6,10 +6,12 @@ import { CreateV1 } from '../validators/createV1.in';
 import { AuthenticateByApiKey } from '../middleware/apiKeyAuth.middleware';
 import { validateJsonBody } from '../validators/validate';
 import { VideoService } from '../services/video.service';
+import { S3Service } from '../services/s3.service';
 
 export const videoController = express.Router();
 
 const videoService = Container.get(VideoService);
+const s3Service = Container.get(S3Service);
 
 videoController.use(AuthenticateByApiKey);
 videoController.use(json());
@@ -57,4 +59,10 @@ videoController.post('/verify/:id', async (req, res) => {
 
 // videoController.delete('/delete/:id', async (req, res) => {});
 
-// videoController.post('/cleanup', async (req, res) => {});
+videoController.post('/clean/:delete?', async (req, res) => {
+    const dryrun = req.params.delete !== 'delete';
+
+    const keys = await videoService.clean(dryrun);
+
+    res.json({ keys });
+});

@@ -3,14 +3,14 @@ import { Document, SchemaTypes, Types } from 'mongoose';
 
 import { UserRole } from '../enums/UserRole.enum';
 
-@Schema()
+@Schema({ _id: false })
 export class Session {
     @Prop({
         required: true,
         default: () => new Types.ObjectId(),
         type: SchemaTypes.ObjectId,
     })
-    public _id!: Types.ObjectId;
+    public id!: Types.ObjectId;
 
     @Prop({ required: true })
     public ipAddress: string;

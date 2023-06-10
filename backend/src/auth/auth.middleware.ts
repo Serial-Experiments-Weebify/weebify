@@ -15,7 +15,7 @@ export const authenticateUser = async (
     const sid = mt.session;
     if (!mt.user || !sid) return mt;
 
-    const session = mt.user.sessions.find((s) => s._id.equals(sid));
+    const session = mt.user.sessions.find((s) => s.id.equals(sid));
 
     if (!session) return mt;
 

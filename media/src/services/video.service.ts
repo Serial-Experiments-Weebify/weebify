@@ -11,6 +11,39 @@ import {
 } from '../models/video.model';
 import { CreateV1 } from '../validators/createV1.in';
 
+const GET_UNIQUE_VIDEO_KEYS = [
+    {
+        $group: {
+            _id: null,
+            keys: {
+                $push: { $concatArrays: ['$sharedKeys', '$uniqueKeys'] },
+            },
+        },
+    },
+    {
+        $project: {
+            keys: {
+                $reduce: {
+                    input: '$keys',
+                    initialValue: [],
+                    in: {
+                        $concatArrays: [
+                            '$$value',
+                            {
+                                $filter: {
+                                    input: '$$this',
+                                    as: 'x',
+                                    cond: { $not: { $in: ['$$x', '$$value'] } },
+                                },
+                            },
+                        ],
+                    },
+                },
+            },
+        },
+    },
+];
+
 @Service()
 export class VideoService {
     constructor(
@@ -150,5 +183,36 @@ export class VideoService {
         }
 
         return { status: m.status, missingFiles: missing };
+    }
+
+    private async getAllReferencedKeys() {
+        const [{ keys }] = (await VideoModel.aggregate(
+            GET_UNIQUE_VIDEO_KEYS,
+        )) as { keys: string[] }[];
+
+        return keys;
+    }
+
+    public async clean(dryrun = true): Promise<string[]> {
+        const allKeys = new Set(
+            (
+                await Promise.all([
+                    this.s3.listKeys(this.cfg.vars.S3_BUCKET, 'video'),
+                    this.s3.listKeys(this.cfg.vars.S3_BUCKET, 'fonts'),
+                ])
+            ).flat(),
+        );
+
+        const referencedKeys = await this.getAllReferencedKeys();
+        referencedKeys.forEach((k) => allKeys.delete(k));
+
+        // get all keys that were not referenced
+        const keysToDelete = [...allKeys];
+
+        if (!dryrun) {
+            await this.s3.massDelete(this.cfg.vars.S3_BUCKET, keysToDelete);
+        }
+
+        return keysToDelete;
     }
 }
