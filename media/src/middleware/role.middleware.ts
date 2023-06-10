@@ -5,9 +5,15 @@ export function RoleGuard(...roles: UserRole[]) {
     return (req: Request, res: Response, next: NextFunction) => {
         const user = (req as any).user as UserDocument;
 
-        if (!user) return res.status(401).send({ error: 'Unauthorized' });
+        // API keys don't have roles
+        const apikey = (req as any).apikey ?? (false as boolean);
 
-        if (roles.includes(user.role)) next();
+        if (!user && !apikey)
+            return res.status(401).send({ error: 'Unauthorized' });
+
+        if (apikey) return next();
+        if (roles.includes(user.role)) return next();
+
         return res.status(403).send({ error: 'Forbidden' });
     };
 }

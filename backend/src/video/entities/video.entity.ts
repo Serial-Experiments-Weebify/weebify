@@ -3,7 +3,7 @@ import { Document } from 'mongoose';
 import { WeebifyVideoType } from '../enums/videoType.enum';
 import { V0, V0Schema } from './v0.schema';
 import { VideoStatus } from '../enums/videoStatus.enum';
-import { V1Schema } from './v1.schema';
+import { V1, V1Schema } from './v1.schema';
 
 @Schema({
     discriminatorKey: 'type',
@@ -42,3 +42,5 @@ export const MovieMediaSchema = VideoSchema.discriminator(
 
 export type VideoDocument = Video & Document;
 export type VideoV0Document = Video & V0 & Document;
+export type VideoV1Document = Video & V1 & Document;
+export type VideoAnyDocument = Video & Partial<V0> & Partial<V1> & Document;

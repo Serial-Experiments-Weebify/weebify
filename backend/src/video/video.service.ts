@@ -1,7 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import {
+    BadRequestException,
+    Inject,
+    Injectable,
+    NotFoundException,
+    forwardRef,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Video } from './entities/video.entity';
 import { Model } from 'mongoose';
+import { MediaService } from 'src/media/media.service';
 
 const VIDEOS_JOIN_LINKED_MEDIA = [
     {
@@ -84,10 +91,38 @@ export class VideoService {
     constructor(
         @InjectModel(Video.name)
         protected videoModel: Model<Video>,
+
+        @Inject(forwardRef(() => MediaService))
+        protected mediaService: MediaService,
     ) {}
 
     async listVideos() {
         // Types? What are those?
         return await this.videoModel.aggregate(VIDEOS_JOIN_LINKED_MEDIA);
+    }
+
+    async deleteVideo(id: string) {
+        const r = await this.mediaService.getMediaForVideo(id);
+
+        if (r) {
+            throw new BadRequestException('Video is linked to media');
+        }
+
+        const v = await this.videoModel.findByIdAndDelete(id);
+
+        if (!v) {
+            throw new NotFoundException('Video not found');
+        }
+
+        return true;
+    }
+
+    async getVideo(id: string) {
+        const v = await this.videoModel.findById(id);
+
+        if (!v) {
+            throw new NotFoundException('Video not found');
+        }
+        return v;
     }
 }

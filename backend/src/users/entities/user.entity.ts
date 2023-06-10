@@ -44,10 +44,10 @@ export class User {
     @Prop({ type: String, required: false })
     public pfpToken?: string;
 
-    @Prop({ required: false, default: '' })
+    @Prop({ required: false, default: () => '' })
     public bio: string;
 
-    @Prop({ type: String, default: UserRole.USER, required: true })
+    @Prop({ type: String, default: () => UserRole.USER, required: true })
     public role: UserRole;
 
     @Prop()
@@ -59,7 +59,7 @@ export class User {
     @Prop({ type: SchemaTypes.ObjectId, ref: 'User', required: false })
     public invitedBy?: UserDocument;
 
-    @Prop({ type: [String], default: [] })
+    @Prop({ type: [String], default: () => [] })
     public inviteCodes: string[];
 
     @Prop({
@@ -69,7 +69,7 @@ export class User {
     })
     public following: User[];
 
-    @Prop({ type: [SessionSchema], default: [] })
+    @Prop({ type: [SessionSchema], default: () => [] })
     public sessions: Session[];
 }
 

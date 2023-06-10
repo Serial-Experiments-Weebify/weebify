@@ -1,9 +1,9 @@
 import { DocumentType, getModelForClass, prop } from '@typegoose/typegoose';
-import { SchemaTypes } from 'mongoose';
+import { SchemaTypes, Types } from 'mongoose';
 
 export class APIKey {
     @prop({ type: SchemaTypes.ObjectId })
-    owner: string;
+    owner: Types.ObjectId;
 
     @prop()
     key: string;

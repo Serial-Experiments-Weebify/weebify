@@ -31,6 +31,9 @@ export class UsersService {
     constructor(
         @InjectModel('User')
         private userModel: Model<UserDocument>,
+
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
         @InjectMeiliSearch()
         private meiliSearch: MeiliSearch,
     ) {}
@@ -274,17 +277,14 @@ export class UsersService {
                     $pull: { inviteCodes: inviteCode },
                 },
             );
-            console.log({ modifiedCount });
             if (modifiedCount == 0) throw new NotFoundException();
         } else {
-            const { modifiedCount, matchedCount } =
-                await this.userModel.updateMany(
-                    {},
-                    {
-                        $pull: { inviteCodes: inviteCode },
-                    },
-                );
-            console.log({ modifiedCount, matchedCount });
+            const { modifiedCount } = await this.userModel.updateMany(
+                {},
+                {
+                    $pull: { inviteCodes: inviteCode },
+                },
+            );
             if (modifiedCount == 0) throw new NotFoundException();
         }
         return true;

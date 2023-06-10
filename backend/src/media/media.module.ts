@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { MediaService } from './media.service';
 import { MediaResolver } from './media.resolver';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -7,10 +7,12 @@ import { TvSchema } from './entities/tv.schema';
 import { MediaKind } from './enums/mediaKind.enum';
 import { MovieSchema } from './entities/movie.schema';
 import { MeiliSearchModule, MeiliSearchService } from 'nestjs-meilisearch';
+import { VideoModule } from 'src/video/video.module';
 
 @Module({
     providers: [MediaResolver, MediaService],
     imports: [
+        forwardRef(() => VideoModule),
         MongooseModule.forFeatureAsync([
             {
                 name: Media.name,

@@ -66,7 +66,10 @@ export function Auth(mode: AuthType = AuthType.Any) {
         if (!tokenOrJwt) return res.status(401).send({ error: 'Unauthorized' });
 
         if (mode !== AuthType.JwtOnly) {
-            if (await checkApiKeyAuth(tokenOrJwt)) isAuthenticated = true;
+            if (await checkApiKeyAuth(tokenOrJwt)) {
+                isAuthenticated = true;
+                (req as any).apikey = true;
+            }
         }
 
         if (mode !== AuthType.ApiKeyOnly) {
@@ -77,7 +80,7 @@ export function Auth(mode: AuthType = AuthType.Any) {
             }
         }
 
-        if (!isAuthenticated) next();
+        if (isAuthenticated) next();
         else res.status(401).send({ error: 'Unauthorized' });
     };
 }

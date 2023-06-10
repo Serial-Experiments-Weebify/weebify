@@ -1,9 +1,18 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Types } from 'mongoose';
+import { SchemaTypes, Types } from 'mongoose';
 import { EpisodeStatus } from '../enums/episodeStatus.enum';
 
-@Schema()
+@Schema({
+    _id: false,
+})
 export class Episode {
+    @Prop({
+        required: true,
+        type: SchemaTypes.ObjectId,
+        default: () => new Types.ObjectId(),
+    })
+    id: Types.ObjectId;
+
     @Prop({ required: true, type: Number })
     episodeNumber: number;
 
@@ -13,8 +22,8 @@ export class Episode {
     @Prop({ required: true, type: String })
     title: string;
 
-    @Prop({ required: false, type: Types.ObjectId })
-    mediaId?: Types.ObjectId;
+    @Prop({ type: SchemaTypes.ObjectId, default: null })
+    videoId: Types.ObjectId | null;
 
     @Prop({ required: true, type: String })
     episodeStatus: EpisodeStatus;

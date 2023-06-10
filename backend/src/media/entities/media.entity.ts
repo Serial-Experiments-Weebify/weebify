@@ -49,7 +49,10 @@ export class Media {
 export type MediaDocument = Media & Document;
 export type TVMediaDocument = Media & Tv & Document;
 export type MovieMediaDocument = Media & Movie & Document;
-
+export type MediaGenericDocument = Media &
+    Partial<Tv> &
+    Partial<Movie> &
+    Document;
 export const MediaSchema = SchemaFactory.createForClass(Media);
 
 export const MovieMediaSchema = MediaSchema.discriminator(

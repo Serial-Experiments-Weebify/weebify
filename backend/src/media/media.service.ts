@@ -1,17 +1,20 @@
 import {
     BadRequestException,
+    Inject,
     Injectable,
     NotFoundException,
+    forwardRef,
 } from '@nestjs/common';
 import { CreateMediaInput } from './dto/create-media.input';
 import { UpdateMediaInput } from './dto/update-media.input';
 import {
     Media,
     MediaDocument,
+    MediaGenericDocument,
     MovieMediaDocument,
     TVMediaDocument,
 } from './entities/media.entity';
-import { Document } from 'mongoose';
+import { Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { MediaKind } from './enums/mediaKind.enum';
@@ -24,6 +27,7 @@ import { EpisodeStatus } from './enums/episodeStatus.enum';
 import MeiliSearch from 'meilisearch';
 import { InjectMeiliSearch } from 'nestjs-meilisearch';
 import { MediaStatus } from './enums/mediaStatus.enum';
+import { VideoService } from 'src/video/video.service';
 
 @Injectable()
 export class MediaService {
@@ -41,6 +45,9 @@ export class MediaService {
         //@ts-ignore
         @InjectMeiliSearch()
         protected meiliSearch: MeiliSearch,
+
+        @Inject(forwardRef(() => VideoService))
+        protected mediaService: VideoService,
     ) {}
 
     async create(createMediaInput: CreateMediaInput) {
@@ -118,11 +125,16 @@ export class MediaService {
         if (!isMongoId(mId)) throw new BadRequestException('Not a mongo ID');
 
         const episode = new Episode();
+
+        if (!episode.id) episode.id = new Types.ObjectId();
+
         episode.extra = ep.extra;
         episode.title = ep.title;
         episode.episodeNumber = ep.episodeNumber;
         episode.episodeStatus = ep.episodeStatus;
+
         const m = await this.tvMediaModel.findById(mId);
+
         if (!m) throw new NotFoundException('Media not found');
         if (m.episodes) {
             m.episodes.push(episode);
@@ -162,7 +174,9 @@ export class MediaService {
         const m = await this.tvMediaModel.findById(mId);
         if (!m) throw new NotFoundException('Media not found');
         if (!m.episodes) throw new NotFoundException('Episode not found');
-        const e = m.episodes.find((x) => eId == (x as Episode & Document).id);
+
+        const e = m.episodes.find((x) => x.id.equals(eId));
+
         if (!e) throw new NotFoundException('Episode not found');
 
         Object.assign(e, ep);
@@ -178,9 +192,7 @@ export class MediaService {
         const m = await this.tvMediaModel.findById(mId);
         if (!m) throw new NotFoundException('Media not found');
         if (!m.episodes) throw new NotFoundException('Episode not found');
-        m.episodes = m.episodes.filter(
-            (x) => (x as Episode & Document).id != eId,
-        );
+        m.episodes = m.episodes.filter((x) => x.id.equals(eId));
 
         await m.save();
         return true;
@@ -252,5 +264,78 @@ export class MediaService {
         await this.meiliSearch.waitForTask(st.taskUid);
 
         return true;
+    }
+
+    async getMediaForVideo(vid: string) {
+        const videoId = new Types.ObjectId(vid);
+        const reference = await this.mediaModel.findOne(
+            {
+                $or: [
+                    { videoId },
+                    {
+                        episodes: {
+                            $elemMatch: {
+                                videoId,
+                            },
+                        },
+                    },
+                ],
+            },
+            null,
+            { strictQuery: false }, // rip 30 min
+        );
+
+        if (!reference) return null;
+
+        const r = {
+            mid: reference.id,
+            eid: (reference as MediaGenericDocument).episodes?.find((x) =>
+                x.videoId?.equals(vid),
+            )?.id,
+        };
+
+        return r;
+    }
+
+    async setVideoForMovie(mid: string, vid: string | null) {
+        const m = await this.movieMediaModel.findById(mid);
+
+        if (!m) throw new NotFoundException('Media not found');
+        m.videoId = vid === null ? null : new Types.ObjectId(vid);
+
+        return await m.save();
+    }
+
+    async setVideoForEpisode(mid: string, eid: string, vid: string | null) {
+        const m = await this.tvMediaModel.findById(mid);
+
+        if (!m) throw new NotFoundException('Media not found');
+        const e = m.episodes.find((x) => x.id.equals(eid));
+
+        if (!e) throw new NotFoundException('Episode not found');
+
+        e.videoId = vid === null ? null : new Types.ObjectId(vid);
+
+        return await m.save();
+    }
+
+    async linkVideoToMedia(vid: string, mid: string, eid?: string) {
+        const m = await this.getMediaForVideo(vid);
+
+        if (m) throw new BadRequestException('Video is already linked');
+
+        if (eid) {
+            return await this.setVideoForEpisode(mid, eid, vid);
+        } else {
+            return await this.setVideoForMovie(mid, vid);
+        }
+    }
+
+    async unlinkVideoFromMedia(mid: string, eid?: string) {
+        if (eid) {
+            return await this.setVideoForEpisode(mid, eid, null);
+        } else {
+            return await this.setVideoForMovie(mid, null);
+        }
     }
 }

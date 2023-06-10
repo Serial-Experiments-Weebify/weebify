@@ -1,4 +1,4 @@
-import { Query, Resolver } from '@nestjs/graphql';
+import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { VideoService } from './video.service';
 import { Video } from './dto/video.interface';
 import { UseGuards } from '@nestjs/common';
@@ -16,5 +16,12 @@ export class VideoResolver {
     @Query(() => [AdminVideo])
     async videos() {
         return await this.videoService.listVideos();
+    }
+
+    @Roles(UserRole.GOD, UserRole.ADMIN)
+    @Mutation(() => Boolean)
+    async deleteVideo(@Args('vid') vid: string) {
+        await this.videoService.deleteVideo(vid);
+        return true;
     }
 }

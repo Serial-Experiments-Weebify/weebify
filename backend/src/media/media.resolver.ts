@@ -107,4 +107,25 @@ export class MediaResolver {
             episode,
         );
     }
+
+    @Mutation(() => Boolean)
+    @Roles(UserRole.GOD, UserRole.ADMIN)
+    async linkVideoToMedia(
+        @Args('mid') mediaId: string,
+        @Args('eid', { nullable: true }) episodeId: string,
+        @Args('vid') videoId: string,
+    ) {
+        await this.mediaService.linkVideoToMedia(videoId, mediaId, episodeId);
+        return true;
+    }
+
+    @Mutation(() => Boolean)
+    @Roles(UserRole.GOD, UserRole.ADMIN)
+    async unlinkVideoToMedia(
+        @Args('mid') mediaId: string,
+        @Args('eid', { nullable: true }) episodeId: string,
+    ) {
+        await this.mediaService.unlinkVideoFromMedia(mediaId, episodeId);
+        return true;
+    }
 }
