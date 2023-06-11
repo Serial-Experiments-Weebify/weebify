@@ -6,7 +6,6 @@ import { ConfigService } from '../services/config.service';
 import { UserDocument, UserModel } from '../models/user.model';
 
 const conf = Container.get(ConfigService);
-const TOKEN_REGEX = /Bearer ([a-z0-9_-]+)/i;
 
 function verifyWeebifyJWT(jwt: string): Promise<{ uid: string; sid: string }> {
     return new Promise((resolve, reject) => {
@@ -32,7 +31,7 @@ async function checkUserAuth(jwt: string): Promise<UserDocument | null> {
 
         const user = await UserModel.findOne({
             _id: uid,
-            sessions: { $elemMatch: { _id: sid } },
+            sessions: { $elemMatch: { id: sid } },
         });
 
         if (!user) return null;
@@ -58,9 +57,7 @@ export enum AuthType {
 
 export function Auth(mode: AuthType = AuthType.Any) {
     return async (req: Request, res: Response, next: NextFunction) => {
-        const tokenOrJwt =
-            req.headers['authorization']?.match(TOKEN_REGEX)?.[1];
-
+        const tokenOrJwt = req.headers.authorization?.replace('Bearer ', '');
         let isAuthenticated = false;
 
         if (!tokenOrJwt) return res.status(401).send({ error: 'Unauthorized' });

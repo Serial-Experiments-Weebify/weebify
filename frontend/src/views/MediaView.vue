@@ -403,9 +403,11 @@ const selectedEpisode = ref<Ep | null>(null);
             </div>
         </div>
 
-        <div class="media-list" v-else-if="media?.kind === MediaKind.Movie">
-            Movie: (Tle pride se extra metadata hopefully)
-            <RouterLink :to="{ name: 'home' }" class="w-big-button">
+        <div
+            class="media-list movie-play"
+            v-else-if="media?.kind === MediaKind.Movie"
+        >
+            <RouterLink :to="{ name: 'home' }" class="w-huge-button">
                 Play
             </RouterLink>
         </div>
@@ -648,6 +650,12 @@ const selectedEpisode = ref<Ep | null>(null);
             }
         }
     }
+}
+
+.movie-play {
+    display: flex;
+    flex-direction: column;
+    align-items: end;
 }
 
 @media only screen and (max-width: 50em) {

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import CleanupVideos from '@/components/Admin/CleanupVideos.vue';
 import RebuildSearch from '@/components/Admin/RebuildSearch.vue';
 </script>
 
@@ -8,6 +9,7 @@ import RebuildSearch from '@/components/Admin/RebuildSearch.vue';
         <div class="actions-list">
             <RebuildSearch index="user" />
             <RebuildSearch index="media" />
+            <CleanupVideos />
         </div>
     </div>
 </template>
@@ -17,13 +19,18 @@ import RebuildSearch from '@/components/Admin/RebuildSearch.vue';
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 10px;
-    section {
+
+    :deep(section) {
         text-align: center;
         display: flex;
         flex-direction: column;
         background-color: @c-oil;
         padding: 10px;
         border-radius: 10px;
+
+        p {
+            flex: 1;
+        }
     }
 }
 </style>

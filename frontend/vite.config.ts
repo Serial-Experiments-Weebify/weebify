@@ -24,14 +24,17 @@ export default defineConfig({
             '/api/media': {
                 target: 'http://localhost:3330',
                 rewrite: (path) => path.replace(/^\/api/, ''),
+                xfwd: true,
             },
             '/api/search': {
                 target: 'http://localhost:7700',
                 rewrite: (path) => path.replace(/^\/api\/search/, ''),
+                xfwd: true,
             },
             '/cdn': {
                 target: 'http://localhost:33300',
                 rewrite: (path) => path.replace(/^\/cdn/, ''),
+                xfwd: true,
             },
         },
     },

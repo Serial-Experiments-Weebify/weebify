@@ -26,7 +26,11 @@ import { VideoModule } from './video/video.module';
             imports: [ConfigModule],
             inject: [ConfigService],
             async useFactory(config: ConfigService) {
-                return { uri: await config.getOrThrow('DATABASE') };
+                const uri = await config
+                    .getOrThrow('DATABASE')
+                    .replace(/(^\"|\"$)/g, ''); // WHY IS THIS NEEDED???
+
+                return { uri };
             },
         }),
         GraphQLModule.forRootAsync<ApolloDriverConfig>({

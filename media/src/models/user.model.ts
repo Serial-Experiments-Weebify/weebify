@@ -1,4 +1,10 @@
-import { DocumentType, getModelForClass, prop } from '@typegoose/typegoose';
+import {
+    DocumentType,
+    getModelForClass,
+    modelOptions,
+    prop,
+} from '@typegoose/typegoose';
+import { SchemaTypes, Types } from 'mongoose';
 
 export enum UserRole {
     GOD = 'GOD',
@@ -7,6 +13,18 @@ export enum UserRole {
     LEGENDARY_MEMBER = 'LEGENDARY_MEMBER',
     USER = 'USER',
 }
+
+@modelOptions({ schemaOptions: { _id: false } })
+export class Session {
+    @prop({
+        required: true,
+        default: () => new Types.ObjectId(),
+        type: SchemaTypes.ObjectId,
+    })
+    public id!: Types.ObjectId;
+}
+export type SessionDocument = DocumentType<Session>;
+export const SessionSchema = getModelForClass(Session);
 
 class User {
     @prop()
@@ -17,6 +35,9 @@ class User {
 
     @prop({ type: String })
     public role: UserRole;
+
+    @prop({ type: [SessionSchema] })
+    public sessions: Session[];
 }
 
 export type UserDocument = DocumentType<User>;

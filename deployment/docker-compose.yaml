@@ -1,0 +1,86 @@
+version: '3'
+name: weebify1
+
+services:
+  database:
+    image: mongo:6
+    command: "mongod --bind_ip_all --config /etc/mongo/mongod.conf"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${DB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      DB_WEEBIFY_USERNAME: ${DB_WEEBIFY_USERNAME}
+      DB_WEEBIFY_PASSWORD: ${DB_WEEBIFY_PASSWORD}
+      WEEBIFY_USER: ${WEEBIFY_USER}
+      WEEBIFY_PASSWORD_HASH: ${WEEBIFY_PASSWORD_HASH}
+
+    volumes:
+      - mongo-data:/data/db
+      - ./mongo/mongo.conf:/etc/mongo/mongod.conf
+      - ./mongo/weebifyinit.js:/docker-entrypoint-initdb.d/weebifyinit.js
+    expose:
+      - 27017
+    ports:
+      - 27017:27017
+    restart: unless-stopped
+    networks:
+      - weebify
+
+  search:
+    image: getmeili/meilisearch:v1.2
+    expose:
+      - 7700
+    environment:
+      MEILI_ENV: production
+      MEILI_MASTER_KEY: ${SEARCH_KEY}
+    volumes:
+      - meili-data:/meili_data
+    networks:
+      - weebify
+
+  # media:
+  #   image: weebify/media:latest
+  #   build:
+  #     context: ../media
+  #   expose:
+  #     - 3001
+  #   depends_on:
+  #     - database
+  #     - search
+
+  backend:
+    image: weebify/backend:latest
+    build:
+      context: ../backend
+    expose:
+      - 3000
+    depends_on:
+      - database
+      - search
+    environment:
+      AUTH_JWT_KEY: ${JWT_KEY}
+      DATABASE: ${DB_URL}
+      SEARCH_HOST: ${SEARCH_HOST}
+      SEARCH_KEY: ${SEARCH_KEY}
+    networks:
+      - weebify
+
+  proxy:
+    image: weebify/frontend:latest
+    build:
+      context: ..
+      dockerfile: frontend.dockerfile
+    depends_on:
+      - search
+      - backend
+    ports:
+      - 8000:80
+    networks:
+      - weebify
+
+networks:
+  weebify:
+
+
+volumes:
+  mongo-data:
+  meili-data:
