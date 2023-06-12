@@ -32,20 +32,44 @@ services:
     environment:
       MEILI_ENV: production
       MEILI_MASTER_KEY: ${SEARCH_KEY}
+    restart: unless-stopped
     volumes:
       - meili-data:/meili_data
     networks:
       - weebify
 
-  # media:
-  #   image: weebify/media:latest
-  #   build:
-  #     context: ../media
-  #   expose:
-  #     - 3001
-  #   depends_on:
-  #     - database
-  #     - search
+  s3:
+    image: minio/minio
+    expose:
+      - 9000
+      - 9001
+    volumes:
+      - media:/data
+      - ./minio/start.sh:/weebifyinit.sh
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET}
+      WEEBIFY_CREATE_BUCKET: ${S3_BUCKET}
+    command: server --console-address ":9001" /data
+    restart: unless-stopped
+    networks:
+      - weebify
+
+  s3init:
+    image: minio/mc
+    depends_on:
+      - s3
+    volumes:
+      - ./s3init:/s3init.sh
+    entrypoint: sh
+    command: /s3init.sh
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET}
+      WEEBIFY_CREATE_BUCKET: ${S3_BUCKET}
+    restart: no
+    networks:
+      - weebify
 
   backend:
     image: weebify/backend:latest
@@ -61,17 +85,47 @@ services:
       DATABASE: ${DB_URL}
       SEARCH_HOST: ${SEARCH_HOST}
       SEARCH_KEY: ${SEARCH_KEY}
+    restart: unless-stopped
+    networks:
+      - weebify
+
+  media:
+    image: weebify/media:latest
+    build:
+      context: ../media
+    expose:
+      - 3001
+    depends_on:
+      - s3
+      - s3init
+      - database
+    environment:
+      PORT: 3001
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
+      S3_SECRET: ${S3_SECRET}
+      S3_PORT: 9000
+      S3_BUCKET: ${S3_BUCKET}
+      S3_ENDPOINT: "s3"
+      S3_SSL: NO
+      SEARCH_HOST: ${SEARCH_HOST}
+      SEARCH_KEY: ${SEARCH_KEY}
+      MONGO: ${DB_URL}
+      AUTH_JWT_KEY: ${JWT_KEY}
+    restart: unless-stopped
     networks:
       - weebify
 
   proxy:
     image: weebify/frontend:latest
+    restart: unless-stopped
     build:
       context: ..
       dockerfile: frontend.dockerfile
     depends_on:
       - search
       - backend
+      - s3
+      - media
     ports:
       - 8000:80
     networks:
@@ -84,3 +138,4 @@ networks:
 volumes:
   mongo-data:
   meili-data:
+  media:

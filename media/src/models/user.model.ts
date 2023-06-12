@@ -24,7 +24,7 @@ export class Session {
     public id!: Types.ObjectId;
 }
 export type SessionDocument = DocumentType<Session>;
-export const SessionSchema = getModelForClass(Session);
+// export const SessionSchema = getModelForClass(Session);
 
 class User {
     @prop()
@@ -36,8 +36,8 @@ class User {
     @prop({ type: String })
     public role: UserRole;
 
-    @prop({ type: [SessionSchema] })
-    public sessions: Session[];
+    @prop({ type: [Session] })
+    public sessions: SessionDocument[];
 }
 
 export type UserDocument = DocumentType<User>;

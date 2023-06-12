@@ -52,7 +52,7 @@ mediaController.post(
 
         try {
             const key = uuid();
-            console.log(`Uploading new profile picture ${key} for ${user}`);
+            console.log(`Uploading new profile picture ${key} for ${user.id}`);
             pfp.toAspectRatio(1);
 
             const uploads = [
