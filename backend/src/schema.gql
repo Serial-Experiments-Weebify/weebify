@@ -64,7 +64,7 @@ type Episode {
   episodeNumber: Float!
   extra: String
   title: String!
-  mediaId: String
+  videoId: String
   episodeStatus: EpisodeStatus!
 }
 
@@ -86,7 +86,7 @@ type Media {
   coverColor: String!
   status: MediaStatus!
   episodes: [Episode!]
-  mediaId: String
+  videoId: String
 }
 
 enum MediaKind {
@@ -129,7 +129,7 @@ type AdminVideo {
   status: String!
   type: String!
   created: DateTime!
-  linkedMedia: [MediaRef!]!
+  media: [MediaRef!]!
 }
 
 type APIKey {
@@ -149,11 +149,17 @@ type Query {
   me: User
   mediaById(id: String!): Media!
   homeRecomendations: HomeRecomendations!
-  videos: [AdminVideo!]!
+  videos(unlinkedOnly: Boolean = false, status: VideoStatus = null): [AdminVideo!]!
   user(idOrUsername: String!): User!
   followed: [String!]!
   listAPIKeys: [APIKey!]!
   users: [User!]!
+}
+
+enum VideoStatus {
+  Waiting
+  OK
+  Failed
 }
 
 type Mutation {
@@ -169,7 +175,7 @@ type Mutation {
   removeEpisode(mediaId: String!, episodeId: String!): Boolean!
   updateEpisode(mediaId: String!, episodeId: String!, episode: UpdateEpisode!): Episode!
   linkVideoToMedia(mid: String!, eid: String, vid: String!): Boolean!
-  unlinkVideoToMedia(mid: String!, eid: String): Boolean!
+  unlinkVideoFromMedia(mid: String!, eid: String): Boolean!
   deleteVideo(vid: String!): Boolean!
   signUp(createUserInput: CreateUserInput!): User!
   generateInviteCode(id: String): String!

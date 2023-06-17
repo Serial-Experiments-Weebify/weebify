@@ -124,7 +124,7 @@ async function setCover(file: File) {
             body: fd,
         });
         if (f.status >= 200 && f.status < 300) {
-            notify.addNotification('info', 'Updated media cover');
+            notify.addNotification('success', 'Updated media cover');
             emit('updated');
         } else {
             const r = await f.json();

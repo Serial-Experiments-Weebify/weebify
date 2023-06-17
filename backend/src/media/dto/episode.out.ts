@@ -12,7 +12,7 @@ export class Episode {
     @Field()
     title: string;
     @Field(() => String, { nullable: true })
-    mediaId?: string;
+    videoId?: string;
     @Field(() => EpisodeStatus)
     episodeStatus: EpisodeStatus;
 }

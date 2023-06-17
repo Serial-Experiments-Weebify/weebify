@@ -2,7 +2,7 @@
 import StatusIcon from '@/icons/StatusIcon.vue';
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 
-type NotifStatus = 'info' | 'warn' | 'error';
+type NotifStatus = 'info' | 'warn' | 'error' | 'success';
 
 const props = defineProps<{
     type: NotifStatus;
@@ -18,6 +18,7 @@ const type2title: Record<NotifStatus, string> = {
     error: 'Error',
     warn: 'Warning',
     info: 'Info',
+    success: 'Success',
 };
 
 let run = false;
@@ -111,6 +112,10 @@ onBeforeUnmount(stop);
     }
     &.info {
         background-color: @c-cyan;
+    }
+
+    &.success {
+        background-color: @c-algae;
     }
 }
 </style>

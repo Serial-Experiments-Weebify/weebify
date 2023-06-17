@@ -9,46 +9,26 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Video } from './entities/video.entity';
 import { Model } from 'mongoose';
 import { MediaService } from 'src/media/media.service';
+import { VideoStatus } from './enums/videoStatus.enum';
 
 const VIDEOS_JOIN_LINKED_MEDIA = [
     {
         $lookup: {
             from: 'media',
-            localField: '_id',
-            foreignField: 'videoId',
+            as: 'media',
+            let: {
+                cvideoId: '$_id',
+            },
             pipeline: [
-                {
-                    $match: {
-                        $or: [
-                            { videoId: { $ne: null } },
-                            {
-                                episodes: {
-                                    $elemMatch: { videoId: { $ne: null } },
-                                },
-                            },
-                        ],
-                    },
-                },
                 {
                     $project: {
                         arr: {
                             $concatArrays: [
                                 {
                                     $cond: {
-                                        if: { $gt: ['$videoId', null] },
-                                        then: [
-                                            {
-                                                mid: '$_id',
-                                                eid: null,
-                                                videoId: '$videoId',
-                                            },
-                                        ],
-                                        else: [],
-                                    },
-                                },
-                                {
-                                    $cond: {
-                                        if: { $eq: ['$kind', 'TV'] },
+                                        if: {
+                                            $eq: ['$kind', 'TV'],
+                                        },
                                         then: {
                                             $map: {
                                                 input: {
@@ -65,7 +45,7 @@ const VIDEOS_JOIN_LINKED_MEDIA = [
                                                 as: 'episode',
                                                 in: {
                                                     mid: '$_id',
-                                                    eid: '$$episode._id',
+                                                    eid: '$$episode.id',
                                                     videoId:
                                                         '$$episode.videoId',
                                                 },
@@ -78,13 +58,41 @@ const VIDEOS_JOIN_LINKED_MEDIA = [
                         },
                     },
                 },
-                { $unwind: { path: '$arr' } },
-                { $replaceRoot: { newRoot: '$arr' } },
+                {
+                    $unwind: {
+                        path: '$arr',
+                    },
+                },
+                {
+                    $replaceRoot: {
+                        newRoot: '$arr',
+                    },
+                },
+                {
+                    $match: {
+                        $expr: {
+                            $eq: ['$videoId', '$$cvideoId'],
+                        },
+                    },
+                },
             ],
-            as: 'linkedMedia',
         },
     },
 ];
+
+function filter(unlinkedOnly = false, stat: VideoStatus | null = null) {
+    const $match: Record<string, any> = {};
+
+    if (stat) {
+        $match.status = stat;
+    }
+
+    if (unlinkedOnly) {
+        $match.media = [];
+    }
+
+    return { $match };
+}
 
 @Injectable()
 export class VideoService {
@@ -96,9 +104,18 @@ export class VideoService {
         protected mediaService: MediaService,
     ) {}
 
-    async listVideos() {
+    async listVideos(
+        unlinkedOnly = false,
+        statusOnly: VideoStatus | null = null,
+    ) {
         // Types? What are those?
-        return await this.videoModel.aggregate(VIDEOS_JOIN_LINKED_MEDIA);
+        if (unlinkedOnly) {
+            return await this.videoModel.aggregate([
+                ...VIDEOS_JOIN_LINKED_MEDIA,
+                filter(unlinkedOnly, statusOnly),
+            ]);
+        }
+        return await this.videoModel.aggregate(VIDEOS_JOIN_LINKED_MEDIA, {});
     }
 
     async deleteVideo(id: string) {

@@ -1,7 +1,7 @@
 import { ref } from 'vue';
 import { defineStore } from 'pinia';
 
-type Level = 'info' | 'warn' | 'error';
+type Level = 'info' | 'warn' | 'error' | 'success';
 
 interface INotification {
     id: number;
@@ -11,6 +11,7 @@ interface INotification {
 }
 
 const TYPE2TIME: Record<Level, number> = {
+    success: 3000,
     info: 3000,
     warn: 5000,
     error: 10000,

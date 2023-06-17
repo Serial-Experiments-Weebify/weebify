@@ -54,7 +54,7 @@ const {
 );
 
 onDone(() => {
-    notify.addNotification('info', 'API key deleted!');
+    notify.addNotification('success', 'API key deleted!');
     refetch();
 });
 

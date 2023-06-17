@@ -121,7 +121,7 @@ export class MediaResolver {
 
     @Mutation(() => Boolean)
     @Roles(UserRole.GOD, UserRole.ADMIN)
-    async unlinkVideoToMedia(
+    async unlinkVideoFromMedia(
         @Args('mid') mediaId: string,
         @Args('eid', { nullable: true }) episodeId: string,
     ) {

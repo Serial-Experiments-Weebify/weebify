@@ -68,7 +68,7 @@ async function addEpisode() {
                 errors[0].message ?? `Unknown error updating episode!`
             );
         } else if (data?.updateEpisode) {
-            notify.addNotification('info', `Sucessfully updated episode`);
+            notify.addNotification('success', `Sucessfully updated episode`);
             emit('updated');
         }
     } catch {

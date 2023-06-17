@@ -21,5 +21,5 @@ export class AdminVideo {
     created: Date;
 
     @Field(() => [MediaRef])
-    linkedMedia: MediaRef[];
+    media: MediaRef[];
 }

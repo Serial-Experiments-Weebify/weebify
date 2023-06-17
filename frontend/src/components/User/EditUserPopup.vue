@@ -187,7 +187,7 @@ async function setPfp(file: File) {
             body: fd,
         });
         if (f.status >= 200 && f.status < 300) {
-            notify.addNotification('info', 'Updated profile picture');
+            notify.addNotification('success', 'Updated profile picture');
             emit('updated');
         } else {
             const r = await f.json();
@@ -228,7 +228,7 @@ async function setRole() {
             );
         }
         if (data?.setRole) {
-            notify.addNotification('info', 'Updated role');
+            notify.addNotification('success', 'Updated role');
             emit('updated');
         }
     } catch (e: any) {

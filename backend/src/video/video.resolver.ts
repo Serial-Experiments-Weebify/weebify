@@ -6,6 +6,7 @@ import { AuthOnlyGuard } from 'src/auth/auth.guard';
 import { Roles } from 'src/auth/roles/role.decorator';
 import { UserRole } from 'src/users/enums/UserRole.enum';
 import { AdminVideo } from './dto/adminVideo.out';
+import { VideoStatus } from './enums/videoStatus.enum';
 
 @UseGuards(AuthOnlyGuard)
 @Resolver(() => Video)
@@ -14,8 +15,17 @@ export class VideoResolver {
 
     @Roles(UserRole.GOD, UserRole.ADMIN)
     @Query(() => [AdminVideo])
-    async videos() {
-        return await this.videoService.listVideos();
+    async videos(
+        @Args('unlinkedOnly', { nullable: true, defaultValue: false })
+        unlinkedOnly: boolean,
+        @Args('status', {
+            type: () => VideoStatus,
+            nullable: true,
+            defaultValue: null,
+        })
+        status: VideoStatus,
+    ) {
+        return await this.videoService.listVideos(unlinkedOnly, status);
     }
 
     @Roles(UserRole.GOD, UserRole.ADMIN)

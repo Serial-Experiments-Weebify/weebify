@@ -4,13 +4,15 @@ import { useAuthStore } from '@/stores/auth';
 import { gql } from '@/_gql';
 import { UserRole, MediaKind, type Episode } from '@/_gql/graphql';
 import { useApolloClient, useQuery } from '@vue/apollo-composable';
-import { computed, ref } from 'vue';
+import { computed, ref, watch, type ComponentPublicInstance } from 'vue';
 import EditMedia from '@/components/Media/EditMedia.vue';
 import { useNotificationStore } from '@/stores/notifications';
 import { useRouter } from 'vue-router';
 import QuickfillEpisodes from '@/components/Media/QuickfillEpisodes.vue';
 import AddEpisode from '@/components/Media/AddEpisode.vue';
 import EditEpisode from '@/components/Media/EditEpisode.vue';
+import { useMousePressed } from '@vueuse/core';
+import LinkVideo from '@/components/Media/LinkVideo.vue';
 
 const auth = useAuthStore();
 const apollo = useApolloClient();
@@ -31,18 +33,41 @@ query MediaPage($id: String!) {
     cover
     coverColor
     status
+    videoId
     episodes {
       id
       episodeNumber
       extra
       title
       episodeStatus
-      mediaId
+      videoId
     }
   }
 }
 `);
 const props = defineProps<{ id: string }>();
+
+const highlightId = computed(() => router.currentRoute.value.hash.substring(1));
+const { pressed: mousePressed } = useMousePressed();
+
+const episodeElements = ref<ComponentPublicInstance[]>();
+
+watch(episodeElements, (els) => {
+    if (!els) return;
+
+    els.find((x) =>
+        (x.$el as HTMLElement | undefined)?.classList.contains('highlighted')
+    )?.$el?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+        inline: 'center',
+    });
+});
+
+watch(mousePressed, () => {
+    if (router.currentRoute.value.hash.startsWith('#'))
+        router.replace({ hash: '' });
+});
 
 const { loading, result, refetch } = useQuery(MEDIA_QUERY, {
     id: props.id,
@@ -90,7 +115,7 @@ async function deleteMedia() {
                 errors[0].message ?? `Unknown error removing media!`
             );
         } else if (data?.removeMedia) {
-            notify.addNotification('info', `Sucessfully removed media`);
+            notify.addNotification('success', `Sucessfully removed media`);
             router.push({ name: 'search' });
         }
     } catch (e) {
@@ -101,7 +126,7 @@ async function deleteMedia() {
     }
 }
 
-type Ep = Omit<Episode, 'mediaId'>;
+type Ep = Omit<Episode, 'videoId'>;
 
 function showEditEpisode(e: Ep) {
     selectedEpisode.value = e;
@@ -135,7 +160,7 @@ async function deleteEpisode() {
                 errors[0].message ?? `Unknown error removing episode!`
             );
         } else if (data?.removeEpisode) {
-            notify.addNotification('info', `Sucessfully removed episode`);
+            notify.addNotification('success', `Sucessfully removed episode`);
             showDeleteEpisode.value = false;
             refetch();
         }
@@ -158,6 +183,7 @@ const selectedEpisode = ref<Ep | null>(null);
 
 <template>
     <main class="detailed-view">
+        <!-- Description popup -->
         <WeebifyPopup
             :title="media?.title ?? ''"
             v-model:show="showBigDescription"
@@ -166,6 +192,8 @@ const selectedEpisode = ref<Ep | null>(null);
                 {{ media?.description }}
             </p>
         </WeebifyPopup>
+
+        <!-- Edit popup -->
         <WeebifyPopup title="Edit media" v-model:show="showEdit">
             <EditMedia
                 @updated="() => refetch()"
@@ -173,6 +201,8 @@ const selectedEpisode = ref<Ep | null>(null);
                 :current-data="media"
             />
         </WeebifyPopup>
+
+        <!-- Delete Popup -->
         <WeebifyPopup title="Confirmation" v-model:show="confirmDelete">
             <p>Are you sure you want to delete this media?</p>
             <button
@@ -252,6 +282,7 @@ const selectedEpisode = ref<Ep | null>(null);
             </div>
         </div>
 
+        <!-- TV -->
         <div class="media-list" v-if="media?.kind === MediaKind.Tv">
             <div class="episode-buttons" v-if="canEdit">
                 <span>Episode tools: </span>
@@ -333,80 +364,66 @@ const selectedEpisode = ref<Ep | null>(null);
                         No
                     </button>
                 </WeebifyPopup>
-                <template v-for="episode in media.episodes">
-                    <RouterLink
-                        v-if="!!episode.mediaId"
-                        :to="{ name: 'watch', params: { id: episode.mediaId } }"
-                        class="episode"
-                        :key="episode.id"
+                <RouterLink
+                    v-for="episode in media.episodes"
+                    :key="episode.id"
+                    :to="{
+                        name: 'watch',
+                        params: { id: episode.videoId ?? 'aaa' },
+                    }"
+                    ref="episodeElements"
+                    class="episode"
+                    :class="{
+                        disabled: !episode.videoId,
+                        highlighted: episode.id == highlightId,
+                    }"
+                >
+                    <span
+                        class="status"
+                        :class="episode.episodeStatus.toLowerCase()"
                     >
-                        <span
-                            class="status"
-                            :class="episode.episodeStatus.toLowerCase()"
-                        >
-                            {{ episode.episodeStatus }}
-                        </span>
-                        <span
-                            >Episode {{ episode.episodeNumber
-                            }}{{ episode.extra ?? '' }} -
-                            {{ episode.title }}</span
-                        >
-                        <div style="flex: 1"></div>
-                        <template v-if="canEdit">
-                            <button
-                                class="w-medium-button w-button-blue"
-                                @click.prevent="() => showEditEpisode(episode)"
-                            >
-                                Edit
-                            </button>
-                            <button
-                                class="w-medium-button w-button-red"
-                                @click.prevent="() => showDeletePrompt(episode)"
-                            >
-                                Delete
-                            </button>
-                        </template>
-                    </RouterLink>
+                        {{ episode.episodeStatus }}
+                    </span>
+                    <span
+                        >Episode {{ episode.episodeNumber
+                        }}{{ episode.extra ?? '' }} - {{ episode.title }}</span
+                    >
+                    <div style="flex: 1"></div>
                     <div
-                        v-else
-                        class="episode disabled"
-                        :key="`${episode.id}-d`"
+                        class="episode-edit"
+                        v-if="canEdit"
+                        @click.prevent.stop
                     >
-                        <span
-                            class="status"
-                            :class="episode.episodeStatus.toLowerCase()"
+                        <LinkVideo
+                            :media-id="media.id"
+                            :episode-id="episode.id"
+                            :video-id="episode.videoId"
+                        />
+                        <button
+                            class="w-medium-button w-button-blue"
+                            @click="() => showEditEpisode(episode)"
                         >
-                            {{ episode.episodeStatus }}
-                        </span>
-                        <span
-                            >Episode {{ episode.episodeNumber
-                            }}{{ episode.extra ?? '' }} -
-                            {{ episode.title }}</span
+                            Edit
+                        </button>
+                        <button
+                            class="w-medium-button w-button-red"
+                            @click="() => showDeletePrompt(episode)"
                         >
-                        <div style="flex: 1"></div>
-                        <template v-if="canEdit">
-                            <button
-                                class="w-medium-button w-button-blue"
-                                @click.prevent="() => showEditEpisode(episode)"
-                            >
-                                Edit
-                            </button>
-                            <button
-                                class="w-medium-button w-button-red"
-                                @click.prevent="() => showDeletePrompt(episode)"
-                            >
-                                Delete
-                            </button>
-                        </template>
+                            Delete
+                        </button>
                     </div>
-                </template>
+                </RouterLink>
             </div>
         </div>
 
+        <!-- Movie -->
         <div
             class="media-list movie-play"
             v-else-if="media?.kind === MediaKind.Movie"
         >
+            <div class="movie-edit" v-if="canEdit">
+                <LinkVideo :media-id="media.id" :video-id="media.videoId" />
+            </div>
             <RouterLink :to="{ name: 'home' }" class="w-huge-button">
                 Play
             </RouterLink>
@@ -621,6 +638,10 @@ const selectedEpisode = ref<Ep | null>(null);
                 color: @c-clay;
             }
 
+            &.highlighted {
+                animation: episode-hl 1s ease infinite;
+            }
+
             .status {
                 background-color: gray;
                 padding: 0.2rem 0.4rem;
@@ -648,14 +669,25 @@ const selectedEpisode = ref<Ep | null>(null);
             &:nth-child(odd) {
                 background-color: fade(@c-oil, 50%);
             }
+
+            .episode-edit {
+                display: flex;
+                gap: 10px;
+                margin: 0;
+                flex-direction: row;
+                align-items: center;
+            }
         }
     }
 }
 
 .movie-play {
     display: flex;
-    flex-direction: column;
-    align-items: end;
+    flex-direction: row;
+    align-items: center;
+    .movie-edit {
+        flex: 1;
+    }
 }
 
 @media only screen and (max-width: 50em) {
@@ -668,6 +700,20 @@ const selectedEpisode = ref<Ep | null>(null);
     }
     .tags {
         justify-content: center;
+    }
+}
+
+@keyframes episode-hl {
+    0% {
+        outline: 2px solid transparent;
+    }
+
+    50% {
+        outline: 2px solid @c-mandy;
+    }
+
+    100% {
+        outline: 2px solid transparent;
     }
 }
 </style>

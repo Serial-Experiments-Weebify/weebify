@@ -42,5 +42,5 @@ export class Media {
     episodes?: Episode[];
 
     @Field(() => String, { nullable: true })
-    mediaId?: string;
+    videoId?: string;
 }

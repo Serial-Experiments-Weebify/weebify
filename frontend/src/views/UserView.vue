@@ -241,7 +241,7 @@ const usernameEmail = computed(() => {
                     <div class="ulist scroll">
                         <RouterLink
                             class="rl-no-fucking-text-decoration"
-                            v-for="u in result?.user.followers ?? []"
+                            v-for="u in result?.user.following ?? []"
                             :key="u.username"
                             :to="{
                                 name: 'user',

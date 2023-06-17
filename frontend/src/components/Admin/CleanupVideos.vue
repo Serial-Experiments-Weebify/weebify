@@ -59,7 +59,7 @@ async function deleteFiles() {
 
         const deleted = (json.keys as string[]).length;
 
-        notify.addNotification('info', `Deleted ${deleted} files`);
+        notify.addNotification('success', `Deleted ${deleted} files`);
     } catch {
         notify.addNotification('error', 'Failed to delete videos');
     } finally {
@@ -75,8 +75,8 @@ const niceDeleteList = computed(() => {
 
 <template>
     <section>
-        <h3>Clean Videos</h3>
-        <p class="desc">Deletes all files for delted videos.</p>
+        <h3>Clean Media</h3>
+        <p class="desc">Removes all S3 objects for deleted videos.</p>
         <button
             class="w-big-button w-button-red btn-load-overlay"
             :disabled="busy"
