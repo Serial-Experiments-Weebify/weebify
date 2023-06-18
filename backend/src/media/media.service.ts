@@ -28,6 +28,7 @@ import MeiliSearch from 'meilisearch';
 import { InjectMeiliSearch } from 'nestjs-meilisearch';
 import { MediaStatus } from './enums/mediaStatus.enum';
 import { VideoService } from 'src/video/video.service';
+import { Watch, WatchEpisode as DTOWatchEpisode } from './dto/watch.output';
 
 @Injectable()
 export class MediaService {
@@ -47,7 +48,7 @@ export class MediaService {
         protected meiliSearch: MeiliSearch,
 
         @Inject(forwardRef(() => VideoService))
-        protected mediaService: VideoService,
+        protected videoService: VideoService,
     ) {}
 
     async create(createMediaInput: CreateMediaInput) {
@@ -337,5 +338,65 @@ export class MediaService {
         } else {
             return await this.setVideoForMovie(mid, null);
         }
+    }
+
+    async watchMovie(mid: string): Promise<Watch> {
+        const movie = await this.movieMediaModel.findById(mid);
+
+        if (!movie) throw new NotFoundException('Movie not found');
+
+        const video = movie.videoId
+            ? await this.videoService.getVideo(movie.videoId?.toHexString())
+            : undefined;
+
+        return {
+            title: movie.title,
+            video,
+        };
+    }
+    private static toPubEpisode(ep: Episode): DTOWatchEpisode;
+    private static toPubEpisode(
+        ep: Episode | undefined | null,
+    ): DTOWatchEpisode | null {
+        if (!ep) return null;
+
+        return {
+            id: ep.id.toHexString(),
+            title: ep.title,
+            episodeNumber: ep.episodeNumber,
+            episodeStatus: ep.episodeStatus,
+            extra: ep.extra,
+        };
+    }
+
+    async watchEpisode(mid: string, eid: string): Promise<Watch> {
+        const series = await this.tvMediaModel.findById(mid);
+
+        if (!series) throw new NotFoundException('Series not found');
+
+        const episodeIndex = series.episodes.findIndex((x) => x.id.equals(eid));
+
+        if (episodeIndex === -1)
+            throw new NotFoundException('Episode not found');
+
+        const currentEpisode = series.episodes[episodeIndex];
+        const nextEpisode = series.episodes[episodeIndex + 1];
+        const previousEpisode = series.episodes[episodeIndex - 1];
+
+        const video = currentEpisode.videoId
+            ? await this.videoService.getVideo(
+                  currentEpisode.videoId?.toHexString(),
+              )
+            : undefined;
+
+        return {
+            title: series.title,
+            video,
+
+            episodes: series.episodes.map(MediaService.toPubEpisode),
+            currentEpisode: MediaService.toPubEpisode(currentEpisode),
+            nextEpisode: MediaService.toPubEpisode(nextEpisode),
+            previousEpisode: MediaService.toPubEpisode(previousEpisode),
+        };
     }
 }

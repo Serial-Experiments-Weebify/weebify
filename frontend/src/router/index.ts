@@ -75,7 +75,7 @@ const router = createRouter({
             },
         },
         {
-            path: '/w/:id',
+            path: '/w/:mid/:eid?',
             name: 'watch',
             props: true,
             component: WatchView,

@@ -1,42 +1,365 @@
 <script lang="ts" setup>
-// import { gql } from '@/_gql';
-// import { useQuery } from '@vue/apollo-composable';
+import { gql } from '@/_gql';
+import { WeebifyVideoType, type VideoV0 } from '@/_gql/graphql';
+import ToggleButton from '@/components/ToggleButton.vue';
+import router from '@/router';
+import { useQuery } from '@vue/apollo-composable';
+import { computed, ref, watch } from 'vue';
 
-// const props = defineProps<{ id: string }>();
+const props = defineProps<{ mid: string; eid?: string }>();
 
-// // const q
-// const { result } = useQuery(
-//     gql(`
-//         query VideoV0 ($id: String!) {
-//             VideoV0(id: $id) {
-//                 key
-//             }
-//         }
-//     `),
-//     {
-//         id: props.id,
-//     }
-// );
+const { result, loading, error, refetch } = useQuery(
+    gql(`
+        query Watch($mid: String!, $eid:String) {
+                watch(mid:$mid, eid:$eid) {
+                    title,
+                    episodes {
+            	    	id
+                        title
+                        episodeStatus
+                        episodeNumber
+                        extra
+                    }
+                    nextEpisode {
+            	    	id
+                        title
+                        episodeStatus
+                        episodeNumber
+                        extra
+                    }
+                    previousEpisode {
+            	    	id
+                        title
+                        episodeStatus
+                        episodeNumber
+                        extra
+                    }
+                    currentEpisode {
+            	    	id
+                        title
+                        episodeStatus
+                        episodeNumber
+                        extra
+                    }
+                    video {
+                        ...on VideoV0 {
+                            type
+                            video
+                        }
+                        ... on VideoV1 {
+                            type
+                            created
+                            subtitles {
+                                default
+                                name
+                                lang
+                                file
+                            }
+                            resolutions {
+                                name
+                                w
+                                h
+                            }
+                            chapters {
+                                start	
+                            	end
+                                title
+                            }
+                        }
+                    }
+                }
+                mediaById(id:$mid) {
+                    cover
+                    coverColor
+                }
+            }
+    `),
+    () => ({
+        mid: props.mid,
+        eid: props.eid,
+    })
+);
+
+watch(props, () => {
+    refetch();
+});
+
+const hasEpisodes = computed(() => !!props.eid);
+
+const bgStyle = computed(() => {
+    return {
+        background: `linear-gradient(to bottom, #14131c00, #14131c), url('/cdn/weebify/cover/${result.value?.mediaById.cover}/full.webp')`,
+        backgroundColor: result.value?.mediaById.coverColor ?? '#0000',
+    };
+});
+
+function nextEp() {
+    router.replace({
+        name: 'watch',
+        params: {
+            mid: props.mid,
+            eid: result.value?.watch.nextEpisode?.id,
+        },
+    });
+}
+
+function prevEp() {
+    router.replace({
+        name: 'watch',
+        params: {
+            mid: props.mid,
+            eid: result.value?.watch.previousEpisode?.id,
+        },
+    });
+}
+
+const useFallback = ref(false);
 </script>
 
 <template>
     <main>
-        I borked it
-        <!-- <video
-            class="sane-width"
-            :src="`/cdn/weebify/media/${result?.VideoV0?.key ?? ''}`"
-            controls
-        ></video> -->
+        <div class="bg" :style="bgStyle"></div>
+
+        <pre v-if="loading">Loading...</pre>
+        <pre v-else-if="error">{{ error }}</pre>
+
+        <div v-else class="watch sane-width">
+            <div class="header">
+                <button
+                    class="arrow-button prev"
+                    :disabled="!result?.watch.previousEpisode"
+                    v-if="hasEpisodes"
+                    @click="prevEp"
+                >
+                    <svg
+                        width="64"
+                        height="70"
+                        viewBox="0 0 64 70"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <path
+                            d="M44 3L20 35L44 67"
+                            stroke-width="6"
+                            stroke-linecap="round"
+                        />
+                    </svg>
+                </button>
+
+                <div class="title" v-if="hasEpisodes">
+                    <h2>
+                        {{ result?.watch.title }} - Episode
+                        {{ result?.watch.currentEpisode?.episodeNumber
+                        }}{{ result?.watch.currentEpisode?.extra ?? '' }}
+                    </h2>
+                    <h1>
+                        {{ result?.watch.currentEpisode?.title }}
+                    </h1>
+                </div>
+                <div class="title" v-else>
+                    <h1>
+                        {{ result?.watch.title }}
+                    </h1>
+                </div>
+
+                <button
+                    class="arrow-button next"
+                    :disabled="!result?.watch.nextEpisode"
+                    v-if="hasEpisodes"
+                    @click="nextEp"
+                >
+                    <svg
+                        width="64"
+                        height="70"
+                        viewBox="0 0 64 70"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <path
+                            d="M20 3L44 35L20 67"
+                            stroke-width="6"
+                            stroke-linecap="round"
+                        />
+                    </svg>
+                </button>
+            </div>
+            <div class="horizontal">
+                <div class="viewer">
+                    <div class="video-container">
+                        <div v-if="!result?.watch.video" class="novideo">
+                            <span> No video available </span>
+                        </div>
+                        <video
+                            v-else-if="
+                                result.watch.video.type == WeebifyVideoType.V0
+                            "
+                            class="video-v0"
+                            :src="`/cdn/weebify/${(result.watch.video as VideoV0).video}`"
+                            controls
+                        ></video>
+                    </div>
+                    <div class="player-settings">
+                        Use fallback player:
+                        <ToggleButton v-model:value="useFallback" />
+                        <div class="note">(Maximizes compatibility)</div>
+                    </div>
+                </div>
+                <div class="episodes" v-if="hasEpisodes"></div>
+            </div>
+        </div>
     </main>
 </template>
 
 <style scoped lang="less">
+.arrow-button {
+    background-color: transparent;
+    border: none;
+    outline: none;
+    cursor: pointer;
+
+    svg {
+        stroke: @c-clay;
+        transition: stroke @t-subtle ease;
+    }
+
+    &:disabled {
+        svg {
+            stroke: @c-mirage;
+        }
+        cursor: not-allowed;
+    }
+
+    &:not(:disabled):hover svg {
+        stroke: @c-cyan;
+    }
+}
+
 main {
     display: flex;
     justify-content: center;
     align-items: center;
+    height: 100%;
+
+    .bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(to bottom, #14131c00, #14131c),
+            url('../assets/cover.jpg');
+        background-size: cover !important;
+        background-position: center !important;
+        filter: blur(5px);
+        z-index: -10;
+    }
+
+    .watch {
+        width: 100%;
+        display: flex;
+        gap: 10px;
+        flex-direction: column;
+        align-items: stretch;
+
+        .header {
+            background-color: @c-oil;
+            display: flex;
+            flex-direction: row;
+            border-radius: 10px;
+
+            .title {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                text-align: center;
+                padding: 0.5rem;
+                gap: 0.5rem;
+
+                h2 {
+                    font-weight: bold;
+                    font-size: 1.5rem;
+                    margin: 0;
+                }
+                h1 {
+                    margin: 0;
+                    font-weight: normal;
+                    font-size: 2rem;
+                }
+            }
+        }
+        .horizontal {
+            flex: 1;
+            display: flex;
+            flex-direction: row;
+            gap: 1rem;
+
+            .viewer {
+                gap: 1rem;
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                justify-content: stretch;
+                padding: 1rem;
+                background-color: @c-oil;
+                border-radius: 10px;
+                overflow: hidden;
+
+                .note {
+                    margin-top: 0.2rem;
+                    font-size: 0.8rem;
+                    color: @c-clay;
+                }
+            }
+
+            .episodes {
+                border-radius: 10px;
+                width: 300px;
+                overflow: hidden;
+                padding: 0 1rem;
+                background-color: @c-oil;
+            }
+        }
+    }
 }
-video {
+
+.video-container {
     width: 100%;
+    background-color: black;
+    aspect-ratio: 16/9;
+    min-height: 100px;
+
+    position: relative;
+    overflow: hidden;
+    border-radius: 3px;
+
+    :deep(& > *) {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        height: 100%;
+    }
+}
+
+.novideo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: @c-mandy;
+    text-align: center;
+    vertical-align: middle;
+
+    span {
+        font-size: 2rem;
+        font-weight: bold;
+    }
+}
+
+.video-v0 {
+    object-fit: contain;
+    outline: none;
 }
 </style>

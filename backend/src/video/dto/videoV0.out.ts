@@ -1,14 +1,15 @@
 import { Field, ObjectType } from '@nestjs/graphql';
-import { VideoStatus } from '../enums/videoStatus.enum';
 import { WeebifyVideoType } from '../enums/videoType.enum';
-import { Video } from './video.interface';
 
-@ObjectType({ implements: () => Video })
-export class VideoV0 implements Video {
+@ObjectType()
+export class VideoV0 {
+    @Field()
     id: string;
-    job: string;
-    status: VideoStatus;
+
+    @Field(() => WeebifyVideoType)
     type: WeebifyVideoType;
+
+    @Field()
     created: Date;
 
     @Field()

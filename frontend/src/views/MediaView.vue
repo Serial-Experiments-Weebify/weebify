@@ -369,7 +369,7 @@ const selectedEpisode = ref<Ep | null>(null);
                     :key="episode.id"
                     :to="{
                         name: 'watch',
-                        params: { id: episode.videoId ?? 'aaa' },
+                        params: { mid: media.id, eid: episode.id },
                     }"
                     ref="episodeElements"
                     class="episode"
@@ -424,7 +424,10 @@ const selectedEpisode = ref<Ep | null>(null);
             <div class="movie-edit" v-if="canEdit">
                 <LinkVideo :media-id="media.id" :video-id="media.videoId" />
             </div>
-            <RouterLink :to="{ name: 'home' }" class="w-huge-button">
+            <RouterLink
+                :to="{ name: 'watch', params: { mid: media.id } }"
+                class="w-huge-button"
+            >
                 Play
             </RouterLink>
         </div>

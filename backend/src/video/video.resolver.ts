@@ -1,6 +1,5 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { VideoService } from './video.service';
-import { Video } from './dto/video.interface';
 import { UseGuards } from '@nestjs/common';
 import { AuthOnlyGuard } from 'src/auth/auth.guard';
 import { Roles } from 'src/auth/roles/role.decorator';
@@ -9,7 +8,7 @@ import { AdminVideo } from './dto/adminVideo.out';
 import { VideoStatus } from './enums/videoStatus.enum';
 
 @UseGuards(AuthOnlyGuard)
-@Resolver(() => Video)
+@Resolver()
 export class VideoResolver {
     constructor(private readonly videoService: VideoService) {}
 

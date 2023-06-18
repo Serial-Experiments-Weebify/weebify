@@ -10,6 +10,8 @@ import { Video } from './entities/video.entity';
 import { Model } from 'mongoose';
 import { MediaService } from 'src/media/media.service';
 import { VideoStatus } from './enums/videoStatus.enum';
+import { VideoV0 } from './dto/videoV0.out';
+import { VideoV1 } from './dto/VideoV1.out';
 
 const VIDEOS_JOIN_LINKED_MEDIA = [
     {
@@ -51,7 +53,13 @@ const VIDEOS_JOIN_LINKED_MEDIA = [
                                                 },
                                             },
                                         },
-                                        else: [],
+                                        else: [
+                                            {
+                                                mid: '$_id',
+                                                eid: null,
+                                                videoId: '$videoId',
+                                            },
+                                        ],
                                     },
                                 },
                             ],
@@ -134,12 +142,13 @@ export class VideoService {
         return true;
     }
 
-    async getVideo(id: string) {
+    async getVideo(id: string): Promise<VideoV0 | VideoV1> {
         const v = await this.videoModel.findById(id);
 
         if (!v) {
             throw new NotFoundException('Video not found');
         }
-        return v;
+
+        return v as any as VideoV0 | VideoV1;
     }
 }

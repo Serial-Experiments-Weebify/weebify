@@ -118,6 +118,65 @@ type HomeRecomendations {
   recent: [MediaPreview!]!
 }
 
+type VideoSubtitle {
+  name: String!
+  lang: String!
+  default: Boolean!
+  file: String!
+}
+
+type VideoResolution {
+  name: String!
+  w: Float!
+  h: Float!
+}
+
+type VideoChapter {
+  start: Float!
+  title: String!
+  end: Float!
+}
+
+type WatchEpisode {
+  id: String!
+  title: String!
+  episodeNumber: Float!
+  extra: String
+  episodeStatus: EpisodeStatus!
+}
+
+type Watch {
+  title: String!
+  video: MediaVideo
+  episodes: [WatchEpisode!]
+  nextEpisode: WatchEpisode
+  previousEpisode: WatchEpisode
+  currentEpisode: WatchEpisode
+}
+
+union MediaVideo = VideoV0 | VideoV1
+
+type VideoV0 {
+  id: String!
+  type: WeebifyVideoType!
+  created: DateTime!
+  video: String!
+}
+
+enum WeebifyVideoType {
+  V0
+  V1
+}
+
+type VideoV1 {
+  id: String!
+  type: WeebifyVideoType!
+  created: DateTime!
+  subtitles: [VideoSubtitle!]!
+  resolutions: [VideoResolution!]!
+  chapters: [VideoChapter!]!
+}
+
 type MediaRef {
   mediaId: String!
   episodeId: String
@@ -148,6 +207,7 @@ type APIKeyWithKey {
 type Query {
   me: User
   mediaById(id: String!): Media!
+  watch(mid: String!, eid: String): Watch!
   homeRecomendations: HomeRecomendations!
   videos(unlinkedOnly: Boolean = false, status: VideoStatus = null): [AdminVideo!]!
   user(idOrUsername: String!): User!

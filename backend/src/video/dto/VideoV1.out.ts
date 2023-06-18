@@ -1,13 +1,81 @@
-import { ObjectType } from '@nestjs/graphql';
-import { VideoStatus } from '../enums/videoStatus.enum';
+import { Field, ObjectType, ResolveField } from '@nestjs/graphql';
 import { WeebifyVideoType } from '../enums/videoType.enum';
-import { Video } from './video.interface';
 
-@ObjectType({ implements: () => Video })
-export class VideoV1 implements Video {
+@ObjectType()
+export class VideoSubtitle {
+    @Field()
+    name: string;
+
+    @Field()
+    lang: string;
+
+    @Field()
+    default: boolean;
+
+    @Field()
+    file: string;
+}
+
+@ObjectType()
+export class VideoResolution {
+    @Field()
+    name: string;
+
+    @Field()
+    w: number;
+
+    @Field()
+    h: number;
+}
+
+@ObjectType()
+export class VideoChapter {
+    @Field()
+    start: number;
+
+    @Field()
+    title: string;
+
+    @Field()
+    end: number;
+}
+
+@ObjectType()
+export class VideoFontRef {
+    @Field()
+    name: string;
+
+    @Field()
+    cdnName: string;
+}
+
+@ObjectType()
+export class VideoV1 {
+    @Field()
     id: string;
-    job: string;
-    status: VideoStatus;
+
+    @Field(() => WeebifyVideoType)
     type: WeebifyVideoType;
+
+    @Field()
     created: Date;
+
+    @Field(() => [VideoSubtitle])
+    subtitles: VideoSubtitle[];
+
+    @Field(() => [VideoResolution])
+    resolutions: VideoResolution[];
+
+    @Field(() => [VideoChapter])
+    chapters: VideoChapter[];
+
+    private fontMap: Record<string, string>;
+
+    @ResolveField(() => VideoFontRef)
+    fonts(): VideoFontRef[] {
+        return Object.entries(this.fontMap).map(([name, cdnName]) => ({
+            name,
+            cdnName,
+        }));
+    }
 }

@@ -13,6 +13,7 @@ import { UpdateMediaInput } from './dto/update-media.input';
 import { CreateMediaInput } from './dto/create-media.input';
 import { EpisodeStatus } from './enums/episodeStatus.enum';
 import { HomeRecomendations } from './dto/home.out';
+import { Watch } from './dto/watch.output';
 
 @UseGuards(AuthOnlyGuard)
 @Resolver(() => Media)
@@ -53,6 +54,15 @@ export class MediaResolver {
     @Query(() => Media, { name: 'mediaById' })
     async findOne(@Args('id', { type: () => String }) id: string) {
         return await this.mediaService.findOne(id);
+    }
+
+    @Query(() => Watch)
+    async watch(
+        @Args('mid', { type: () => String }) mid: string,
+        @Args('eid', { type: () => String, nullable: true }) eid?: string,
+    ) {
+        if (!eid) return await this.mediaService.watchMovie(mid);
+        return await this.mediaService.watchEpisode(mid, eid);
     }
 
     @Mutation(() => Media)
