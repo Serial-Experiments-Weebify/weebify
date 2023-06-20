@@ -103,7 +103,7 @@ export const useAuthStore = defineStore(
             }
 
             me.value = q.data.me;
-            followedIds.value = q.data.followed;
+            followedIds.value = q.data.followed.map((x) => x);
         }
 
         async function init() {
@@ -153,7 +153,7 @@ export const useAuthStore = defineStore(
             if (!followedIds.value) return;
 
             if (value && !followedIds.value.includes(id)) {
-                followedIds.value.push(id);
+                followedIds.value = [...followedIds.value, id];
             }
 
             if (!value) {

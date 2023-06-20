@@ -206,6 +206,7 @@ type APIKeyWithKey {
 
 type Query {
   me: User
+  S3PublicURL: String!
   mediaById(id: String!): Media!
   watch(mid: String!, eid: String): Watch!
   homeRecomendations: HomeRecomendations!

@@ -134,7 +134,7 @@ async function unlinkVideo(mid: string, eid?: string) {
                         },
                         hash: media[0].episodeId
                             ? `#${media[0].episodeId}`
-                            : null,
+                            : undefined,
                     }"
                     >Go</RouterLink
                 >

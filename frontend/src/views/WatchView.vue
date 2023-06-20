@@ -1,10 +1,14 @@
 <script lang="ts" setup>
 import { gql } from '@/_gql';
-import { WeebifyVideoType, type VideoV0 } from '@/_gql/graphql';
+import { WeebifyVideoType, type VideoV0, type VideoV1 } from '@/_gql/graphql';
 import ToggleButton from '@/components/ToggleButton.vue';
 import router from '@/router';
 import { useQuery } from '@vue/apollo-composable';
 import { computed, ref, watch } from 'vue';
+import WeebifyVideo from '@/components/Video/WeebifyPlayer.vue';
+import { useURLStore } from '@/stores/url';
+
+const url = useURLStore();
 
 const props = defineProps<{ mid: string; eid?: string }>();
 
@@ -47,6 +51,7 @@ const { result, loading, error, refetch } = useQuery(
                             video
                         }
                         ... on VideoV1 {
+                            id
                             type
                             created
                             subtitles {
@@ -88,7 +93,10 @@ const hasEpisodes = computed(() => !!props.eid);
 
 const bgStyle = computed(() => {
     return {
-        background: `linear-gradient(to bottom, #14131c00, #14131c), url('/cdn/weebify/cover/${result.value?.mediaById.cover}/full.webp')`,
+        backgroundImage: `linear-gradient(to bottom, #14131c00, #14131c), url('${url.getCoverURL(
+            'full',
+            result.value?.mediaById.cover
+        )}')`,
         backgroundColor: result.value?.mediaById.coverColor ?? '#0000',
     };
 });
@@ -132,8 +140,8 @@ const useFallback = ref(false);
                     @click="prevEp"
                 >
                     <svg
-                        width="64"
-                        height="70"
+                        width="32"
+                        height="35"
                         viewBox="0 0 64 70"
                         fill="none"
                         xmlns="http://www.w3.org/2000/svg"
@@ -169,8 +177,8 @@ const useFallback = ref(false);
                     @click="nextEp"
                 >
                     <svg
-                        width="64"
-                        height="70"
+                        width="32"
+                        height="35"
                         viewBox="0 0 64 70"
                         fill="none"
                         xmlns="http://www.w3.org/2000/svg"
@@ -197,6 +205,19 @@ const useFallback = ref(false);
                             :src="`/cdn/weebify/${(result.watch.video as VideoV0).video}`"
                             controls
                         ></video>
+                        <video
+                            v-else-if="useFallback"
+                            class="video-v0"
+                            :src="`/cdn/weebify/video/${(result.watch.video as VideoV1).id}/fallback.mp4`"
+                            controls
+                        ></video>
+                        <WeebifyVideo
+                            v-else
+                            :vid="(result?.watch.video as VideoV1).id"
+                            :chapters="(result?.watch.video as VideoV1).chapters"
+                            :resolutions="(result?.watch.video as VideoV1).resolutions"
+                            :subtitles="(result?.watch.video as VideoV1).subtitles"
+                        />
                     </div>
                     <div class="player-settings">
                         Use fallback player:
@@ -204,7 +225,36 @@ const useFallback = ref(false);
                         <div class="note">(Maximizes compatibility)</div>
                     </div>
                 </div>
-                <div class="episodes" v-if="hasEpisodes"></div>
+                <div class="ep-wrap">
+                    <div class="episodes" v-if="hasEpisodes">
+                        <RouterLink
+                            v-for="ep in result?.watch.episodes ?? []"
+                            :key="ep.id"
+                            :to="{
+                                name: 'watch',
+                                params: {
+                                    mid: props.mid,
+                                    eid: ep.id,
+                                },
+                            }"
+                            exact-active-class="active"
+                            class="episode"
+                        >
+                            <span class="ep-number">
+                                <span
+                                    class="status"
+                                    :class="ep.episodeStatus"
+                                ></span>
+                                Episode {{ ep.episodeNumber
+                                }}{{ ep.extra ?? '' }}
+                            </span>
+
+                            <div>
+                                {{ ep.title }}
+                            </div>
+                        </RouterLink>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
@@ -312,12 +362,68 @@ main {
                 }
             }
 
-            .episodes {
+            .ep-wrap {
+                position: relative;
                 border-radius: 10px;
                 width: 300px;
-                overflow: hidden;
-                padding: 0 1rem;
                 background-color: @c-oil;
+                overflow: hidden;
+            }
+
+            .episodes {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+
+                overflow-y: scroll;
+
+                display: flex;
+                flex-direction: column;
+
+                .episode {
+                    display: block;
+
+                    color: @c-snow;
+                    text-decoration: none;
+
+                    padding: 0.5rem 0.5rem;
+
+                    transition: background-color @t-subtle ease;
+
+                    &.active {
+                        background-color: fade(@c-mandy, 60%);
+                    }
+
+                    &.active:hover {
+                        background-color: color-mix(
+                            in hsl shorter hue,
+                            fade(@c-cyan, 80%),
+                            fade(@c-mandy, 80%)
+                        );
+                    }
+
+                    &:hover {
+                        background-color: fade(@c-cyan, 50%);
+                    }
+
+                    .ep-number {
+                        font-weight: bold;
+                    }
+
+                    .status {
+                        background-color: @c-cyan;
+                        display: inline-block;
+                        width: 0.8rem;
+                        aspect-ratio: 1;
+                        border-radius: 50%;
+
+                        &.Aired {
+                            background-color: @c-algae;
+                        }
+                    }
+                }
             }
         }
     }
@@ -327,7 +433,6 @@ main {
     width: 100%;
     background-color: black;
     aspect-ratio: 16/9;
-    min-height: 100px;
 
     position: relative;
     overflow: hidden;
@@ -351,6 +456,7 @@ main {
     color: @c-mandy;
     text-align: center;
     vertical-align: middle;
+    max-height: 100%;
 
     span {
         font-size: 2rem;

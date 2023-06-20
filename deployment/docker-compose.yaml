@@ -85,6 +85,7 @@ services:
       DATABASE: ${DB_URL}
       SEARCH_HOST: ${SEARCH_HOST}
       SEARCH_KEY: ${SEARCH_KEY}
+      S3_PUBLIC_URL: ${S3_PUBLIC_URL}
     restart: unless-stopped
     networks:
       - weebify

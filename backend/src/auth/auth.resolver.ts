@@ -9,10 +9,14 @@ import { Request } from 'express';
 import { AuthSession } from './dto/authSession.out';
 import { roleCompare } from 'src/users/enums/UserRole.enum';
 import { UserRole } from 'src/users/enums/UserRole.enum';
+import { ConfigService } from '@nestjs/config';
 
 @Resolver()
 export class AuthResolver {
-    constructor(private readonly auth: AuthService) {}
+    constructor(
+        private readonly auth: AuthService,
+        private readonly cfg: ConfigService,
+    ) {}
 
     @UseGuards(AuthOnlyGuard)
     @Query(() => User, { nullable: true })
@@ -62,5 +66,10 @@ export class AuthResolver {
 
         await this.auth.revokeSession(userId ?? user.id, sid);
         return true;
+    }
+
+    @Query(() => String)
+    async S3PublicURL() {
+        return this.cfg.get<string>('S3_PUBLIC_URL') ?? '/cdn/weebify';
     }
 }

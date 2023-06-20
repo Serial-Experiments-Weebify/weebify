@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { SearchMedia } from '@/types';
+import { useURLStore } from '@/stores/url';
+
+const url = useURLStore();
 
 const props = defineProps<{
     media: Pick<SearchMedia, 'cover' | 'coverColor' | 'title'>;
@@ -8,7 +11,7 @@ const props = defineProps<{
 
 const imageStyle = computed(() => {
     return {
-        background: `url('/cdn/weebify/cover/${props.media.cover}/thumb.webp')`,
+        background: `url('${url.getCoverURL('full', props.media.cover)}')`,
         backgroundColor: props.media.coverColor ?? '#888',
     };
 });

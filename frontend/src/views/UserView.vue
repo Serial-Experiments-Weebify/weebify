@@ -12,9 +12,11 @@ import RevokeSessionsPopup from '@/components/User/RevokeSessionsPopup.vue';
 import { useNotificationStore } from '@/stores/notifications';
 import UserCard from '@/components/User/UserCard.vue';
 import InviteCode from '@/components/User/InviteCode.vue';
+import { useURLStore } from '@/stores/url';
 
-const notify = useNotificationStore();
+const url = useURLStore();
 const auth = useAuthStore();
+const notify = useNotificationStore();
 
 const props = defineProps<{
     username: string;
@@ -121,6 +123,7 @@ async function updateFollow(v: boolean) {
         }
     } catch (e: any) {
         notify.addNotification('error', e?.toString() ?? 'Unknown error');
+        console.error(e);
     } finally {
         followLoading.value = false;
     }
@@ -179,11 +182,7 @@ const usernameEmail = computed(() => {
             </div>
             <div class="side">
                 <img
-                    :src="
-                        result?.user.pfp
-                            ? `/cdn/weebify/pfp/${result.user.pfp}/full.webp`
-                            : ''
-                    "
+                    :src="url.getPfpURL('full', result?.user.pfp)"
                     alt="Profile picture"
                 />
                 <button

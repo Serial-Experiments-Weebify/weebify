@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { gql } from '@/_gql';
+import { useURLStore } from '@/stores/url';
 import { useQuery } from '@vue/apollo-composable';
 import { computed } from 'vue';
 import Datatable from 'vue3-easy-data-table';
 import type { Header } from 'vue3-easy-data-table';
+
+const url = useURLStore();
 
 // in miliseconds
 const units = {
@@ -115,11 +118,7 @@ const users = computed(() => {
             alternating
         >
             <template #item-pfp="{ pfp }">
-                <img
-                    :src="`/cdn/weebify/pfp/${pfp}/tiny.webp`"
-                    alt=""
-                    class="pfp"
-                />
+                <img :src="url.getPfpURL('tiny', pfp)" alt="" class="pfp" />
             </template>
             <template #item-username="{ username }">
                 <RouterLink

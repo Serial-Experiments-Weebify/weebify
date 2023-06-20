@@ -13,11 +13,13 @@ import AddEpisode from '@/components/Media/AddEpisode.vue';
 import EditEpisode from '@/components/Media/EditEpisode.vue';
 import { useMousePressed } from '@vueuse/core';
 import LinkVideo from '@/components/Media/LinkVideo.vue';
+import { useURLStore } from '@/stores/url';
 
 const auth = useAuthStore();
 const apollo = useApolloClient();
 const notify = useNotificationStore();
 const router = useRouter();
+const url = useURLStore();
 
 const MEDIA_QUERY = gql(`
 query MediaPage($id: String!) {
@@ -81,14 +83,20 @@ const canEdit = computed(
 
 const bgStyle = computed(() => {
     return {
-        background: `linear-gradient(to bottom, #14131c00, #14131c), url('/cdn/weebify/cover/${result.value?.mediaById.cover}/full.webp')`,
+        backgroundImage: `linear-gradient(to bottom, #14131c00, #14131c), url('${url.getCoverURL(
+            'full',
+            result.value?.mediaById.cover
+        )}')`,
         backgroundColor: result.value?.mediaById.coverColor ?? '#0000',
     };
 });
 
 const coverStyle = computed(() => {
     return {
-        background: `url('/cdn/weebify/cover/${result.value?.mediaById.cover}/full.webp')`,
+        backgroundImage: `linear-gradient(to bottom, #14131c00, #14131c), url('${url.getCoverURL(
+            'full',
+            result.value?.mediaById.cover
+        )}')`,
         backgroundColor: result.value?.mediaById.coverColor ?? '#888',
     };
 });
@@ -463,8 +471,8 @@ const selectedEpisode = ref<Ep | null>(null);
         left: 0;
         right: 0;
         height: 50vh;
-        background: linear-gradient(to bottom, #14131c00, #14131c),
-            url('../assets/cover.jpg');
+        background-image: linear-gradient(to bottom, #14131c00, #14131c),
+            url('../assets/images/coverDefault.webp');
         background-size: cover !important;
         background-position: center !important;
         filter: blur(@blur-size);
@@ -492,6 +500,7 @@ const selectedEpisode = ref<Ep | null>(null);
     }
     .metadata {
         display: flex;
+        flex: 1;
         flex-direction: column;
         justify-content: flex-end;
         gap: 0.5em;

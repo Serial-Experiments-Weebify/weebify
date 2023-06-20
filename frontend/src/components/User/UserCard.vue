@@ -2,12 +2,14 @@
 import { computed } from 'vue';
 import type { SearchUser } from '@/types';
 import RoleIcon from '@/icons/RoleIcon.vue';
+import { useURLStore } from '@/stores/url';
 
 const props = defineProps<{ user: SearchUser }>();
+const url = useURLStore();
 
 const imageStyle = computed(() => {
     return {
-        background: `url('/cdn/weebify/pfp/${props.user.pfp}/tiny.webp')`,
+        backgroundImage: `url('${url.getPfpURL('tiny', props.user.pfp)}')`,
     };
 });
 </script>
@@ -46,6 +48,7 @@ const imageStyle = computed(() => {
         width: 64px;
         height: 64px;
         border-radius: 50%;
+        background-repeat: no-repeat;
         background-size: cover;
         background-color: @c-oil !important;
         transition: transform @t-subtle ease;

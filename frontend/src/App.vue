@@ -17,9 +17,13 @@ import DropDown from '@/components/DropDown.vue';
 import NewMedia from '@/components/Media/NewMedia.vue';
 import WeebifyNotification from '@/components/Notifications/WeebifyNotification.vue';
 import AdminIcon from './icons/AdminIcon.vue';
+import { useURLStore } from './stores/url';
 
 const auth = useAuthStore();
+const url = useURLStore();
+
 auth.init();
+
 const notif = useNotificationStore();
 const router = useRouter();
 const showNew = ref(false);
@@ -81,9 +85,8 @@ const canEdit = computed(
         <DropDown v-else-if="auth.me">
             <template #default>
                 <div class="nav-icon-link">
-                    <!-- TODO: fix CDN -->
                     <img
-                        :src="`/cdn/weebify/pfp/${auth.me.pfp}/tiny.webp`"
+                        :src="url.getPfpURL('tiny', auth.me.pfp)"
                         alt="Profile picture"
                     />
                     {{ auth.me.username }}
