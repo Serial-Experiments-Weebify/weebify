@@ -1,6 +1,11 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue';
-import { useFullscreen, useMediaControls } from '@vueuse/core';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import {
+    useFullscreen,
+    useMediaControls,
+    useMouseInElement,
+    useTimeoutFn,
+} from '@vueuse/core';
 import {
     MediaInfo,
     MediaPlayer,
@@ -8,21 +13,25 @@ import {
     type MediaPlayerClass,
     type MediaType,
 } from 'dashjs';
-import SeekBar from './SeekBar.vue';
-import { secondsToHMS } from './time';
-
-import { useURLStore } from '@/stores/url';
-
-import fallbackFont from '@/assets/fonts/LiberationMono-Regular.woff2?url';
-import libassWorkerJS from 'libass-wasm/dist/js/subtitles-octopus-worker.js?url';
-import OctopusSubtitles from 'libass-wasm';
-
 import type {
     VideoChapter,
     VideoFontRef,
     VideoResolution,
     VideoSubtitle,
 } from '@/_gql/graphql';
+
+import fallbackFont from '@/assets/fonts/LiberationMono-Regular.woff2?url';
+import libassWorkerJS from 'libass-wasm/dist/js/subtitles-octopus-worker.js?url';
+import OctopusSubtitles from 'libass-wasm';
+
+import { secondsToHMS } from './time';
+
+import { useURLStore } from '@/stores/url';
+
+import SeekBar from './SeekBar.vue';
+import PlayPauseIcon from './Icons/PlayPauseIcon.vue';
+import FullscreenIcon from './Icons/FullscreenIcon.vue';
+import SettingsIcon from './Icons/SettingsIcon.vue';
 
 const url = useURLStore();
 
@@ -45,8 +54,9 @@ const selectedSubtitles = ref(-1);
 const showSettings = ref(false);
 
 //#region DOM interfacing stuff
-const video = ref<HTMLVideoElement>();
 const root = ref<HTMLDivElement>();
+const video = ref<HTMLVideoElement>();
+const controls = ref<HTMLDivElement>();
 
 const { playing, currentTime, duration, buffered, volume } =
     useMediaControls(video);
@@ -112,7 +122,7 @@ onBeforeUnmount(() => {
 });
 //#endregion Initalization and cleanup
 
-//#region change stream/track
+//#region change stream/track/subs
 function setAudioTrack(at: MediaInfo) {
     dashjs.value?.setCurrentTrack(at);
 }
@@ -120,7 +130,6 @@ function setAudioTrack(at: MediaInfo) {
 function setRes(index: number) {
     dashjs.value?.setQualityFor('video', index, true);
 }
-//#endregion change stream/track
 
 function setSubs(index: number) {
     console.log([
@@ -161,12 +170,50 @@ function setSubs(index: number) {
         // availableFonts,
     });
 }
+//#endregion change stream/track
+
+const mouseMoved = ref(false);
+
+const { isOutside } = useMouseInElement(controls);
+
+const { x: mx, y: my, isOutside: outsidePlayer } = useMouseInElement(root);
+
+const { stop, start } = useTimeoutFn(() => {
+    mouseMoved.value = false;
+}, 2000);
+
+watch([mx, my], () => {
+    if (outsidePlayer.value) return;
+    mouseMoved.value = true;
+    stop();
+    start();
+});
+
+const showControls = computed(
+    () =>
+        !playing.value ||
+        showSettings.value ||
+        !isOutside.value ||
+        mouseMoved.value
+);
 </script>
 
 <template>
-    <div class="container" ref="root">
-        <video ref="video" />
-        <div class="controls-bottom">
+    <div
+        tabindex="0"
+        class="container"
+        @keydown.capture.space="playing = !playing"
+        @keydown.capture.k="playing = !playing"
+        @keydown.capture.f="isFullscreen ? fsExit() : fsEnter()"
+        @keydown.capture.left="currentTime -= 5"
+        @keydown.capture.j="currentTime -= 5"
+        @ketdown.capture.right="currentTime += 5"
+        @keydown.capture.l="currentTime += 5"
+        ref="root"
+        :class="{ hide: !showControls }"
+    >
+        <video ref="video" @click="playing = !playing" />
+        <div class="controls-bottom" ref="controls">
             <div class="settings" v-if="showSettings">
                 <div class="resolutions">
                     <span class="st">Video</span>
@@ -213,12 +260,13 @@ function setSubs(index: number) {
                 v-model:currentTime="currentTime"
                 :duration="duration"
                 :buffered="buffered"
+                :chapters="props.chapters"
             />
 
             <!-- Buttons -->
             <div class="tc">
                 <button @click="playing = !playing">
-                    {{ playing ? 'Pause' : 'Play' }}
+                    <PlayPauseIcon :playing="playing" />
                 </button>
 
                 <span>
@@ -236,11 +284,11 @@ function setSubs(index: number) {
                 <div style="flex: 1"></div>
 
                 <button @click="() => (showSettings = !showSettings)">
-                    {{ showSettings ? 'Hide' : 'Show' }} Settings
+                    <SettingsIcon />
                 </button>
 
                 <button @click="() => (isFullscreen ? fsExit() : fsEnter())">
-                    {{ isFullscreen ? "Fullscreenn't" : 'Fullscreen' }}
+                    <FullscreenIcon :fullscreen="isFullscreen" />
                 </button>
             </div>
         </div>
@@ -248,11 +296,39 @@ function setSubs(index: number) {
 </template>
 
 <style scoped lang="less">
+button {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+
+    :deep(svg) {
+        transition: all 0.2s ease-in-out;
+
+        fill: lighten(@c-mandy, 30%);
+        filter: drop-shadow(1px 1px 10px @c-oil);
+    }
+
+    :deep(&:hover > svg) {
+        fill: lighten(@c-mandy, 5%) !important;
+        transform: scale(1.2);
+    }
+}
 .container {
     position: relative;
     width: 100%;
     height: 100%;
     background-color: black;
+
+    &.hide {
+        cursor: none;
+
+        .controls-bottom {
+            opacity: 0;
+            transform: translateY(100%);
+        }
+    }
 }
 
 video {
@@ -262,6 +338,12 @@ video {
 }
 
 .controls-bottom {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+
+    padding-top: 32px;
+
     position: absolute;
     left: 0;
     right: 0;
@@ -270,6 +352,10 @@ video {
     display: flex;
     flex-direction: column;
     align-items: stretch;
+
+    gap: 5px;
+
+    background-image: linear-gradient(to top, #0008, transparent);
 
     .settings {
         display: flex;
@@ -328,7 +414,11 @@ video {
 
     .tc {
         display: flex;
+        align-items: center;
         flex-direction: row;
+        gap: 5px;
+        padding: 0 10px;
+        height: 40px;
     }
 }
 </style>

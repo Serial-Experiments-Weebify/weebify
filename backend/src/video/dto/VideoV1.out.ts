@@ -1,4 +1,4 @@
-import { Field, ObjectType, ResolveField } from '@nestjs/graphql';
+import { Field, ObjectType } from '@nestjs/graphql';
 import { WeebifyVideoType } from '../enums/videoType.enum';
 
 @ObjectType()

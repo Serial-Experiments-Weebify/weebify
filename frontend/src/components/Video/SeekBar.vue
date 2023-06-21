@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { useMouse } from '@vueuse/core';
 import { computed, ref } from 'vue';
 import { secondsToHMS } from './time';
+import type { VideoChapter } from '@/_gql/graphql';
 
 const seekbar = ref<HTMLDivElement>();
 
@@ -9,6 +9,7 @@ const props = defineProps<{
     currentTime: number;
     duration: number;
     buffered: [number, number][];
+    chapters: VideoChapter[];
 }>();
 
 const cursorStyle = computed(() => ({
@@ -19,6 +20,16 @@ const bufferedSections = computed(() =>
     props.buffered.map(([start, end]) => ({
         left: `${(start / props.duration) * 100}%`,
         width: `${((end - start) / props.duration) * 100}%`,
+    }))
+);
+
+const chapterSections = computed(() =>
+    props.chapters.map(({ start, end, title }) => ({
+        style: {
+            left: `${(start / props.duration) * 100}%`,
+            width: `${((end - start) / props.duration) * 100}%`,
+        },
+        title,
     }))
 );
 
@@ -62,6 +73,14 @@ function cursorPositon(e: MouseEvent) {
             :key="i"
             :style="section"
         ></div>
+        <div
+            class="chapter"
+            v-for="(ch, i) in chapterSections"
+            :key="i"
+            :style="ch.style"
+        >
+            <span>{{ ch.title }}</span>
+        </div>
         <div class="cursor" :style="cursorStyle"></div>
         <div class="time-popup" :style="{ left: `${mx}px` }">
             {{ hoverTime }}
@@ -82,6 +101,38 @@ function cursorPositon(e: MouseEvent) {
     bottom: 0;
     pointer-events: none;
     background-color: fade(@c-algae, 20%);
+}
+
+.chapter {
+    z-index: 100;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    pointer-events: auto;
+
+    border-left: 1px solid @c-snow;
+    border-right: 1px solid @c-snow;
+
+    &:hover > span {
+        opacity: 1;
+    }
+
+    span {
+        font-size: 12px;
+        word-break: break-all;
+
+        opacity: 0;
+        transition: opacity 0.2s ease;
+        color: @c-snow;
+        background-color: #0008;
+        border-radius: 3px;
+
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 500%;
+        text-align: center;
+    }
 }
 
 .cursor {
