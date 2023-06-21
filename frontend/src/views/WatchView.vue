@@ -54,6 +54,10 @@ const { result, loading, error, refetch } = useQuery(
                             id
                             type
                             created
+                            fonts {
+                                name
+                                cdnName
+                            }
                             subtitles {
                                 default
                                 name
@@ -217,6 +221,7 @@ const useFallback = ref(false);
                             :chapters="(result?.watch.video as VideoV1).chapters"
                             :resolutions="(result?.watch.video as VideoV1).resolutions"
                             :subtitles="(result?.watch.video as VideoV1).subtitles"
+                            :fonts="(result?.watch.video as VideoV1).fonts"
                         />
                     </div>
                     <div class="player-settings">

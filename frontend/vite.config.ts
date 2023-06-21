@@ -30,6 +30,7 @@ export default defineConfig({
         },
     },
     server: {
+        hmr: false, // TODO: remove, player breaks with hmr
         proxy: {
             '/graphql': 'http://localhost:3000',
             '/api/media': {

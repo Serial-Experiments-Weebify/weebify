@@ -29,6 +29,9 @@ import { InjectMeiliSearch } from 'nestjs-meilisearch';
 import { MediaStatus } from './enums/mediaStatus.enum';
 import { VideoService } from 'src/video/video.service';
 import { Watch, WatchEpisode as DTOWatchEpisode } from './dto/watch.output';
+import { WeebifyVideoType } from 'src/video/enums/videoType.enum';
+import { VideoV1 } from 'src/video/dto/VideoV1.out';
+import { VideoV1Document } from 'src/video/entities/video.entity';
 
 @Injectable()
 export class MediaService {

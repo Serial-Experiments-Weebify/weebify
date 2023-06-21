@@ -6,12 +6,13 @@ import {
     forwardRef,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Video } from './entities/video.entity';
+import { Video, VideoV1Document } from './entities/video.entity';
 import { Model } from 'mongoose';
 import { MediaService } from 'src/media/media.service';
 import { VideoStatus } from './enums/videoStatus.enum';
 import { VideoV0 } from './dto/videoV0.out';
 import { VideoV1 } from './dto/VideoV1.out';
+import { WeebifyVideoType } from './enums/videoType.enum';
 
 const VIDEOS_JOIN_LINKED_MEDIA = [
     {
@@ -147,6 +148,13 @@ export class VideoService {
 
         if (!v) {
             throw new NotFoundException('Video not found');
+        }
+
+        //TODO: Fix this crap
+        if (v?.type === WeebifyVideoType.V1) {
+            (v as any).fonts = Object.entries(
+                (v as any as VideoV1Document).fontMap,
+            ).map(([ke, va]) => ({ name: ke, cdnName: va }));
         }
 
         return v as any as VideoV0 | VideoV1;

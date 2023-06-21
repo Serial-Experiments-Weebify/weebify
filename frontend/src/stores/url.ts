@@ -47,11 +47,17 @@ export const useURLStore = defineStore('url', () => {
         return `${s3PublicURL.value}/cover/${id}/${size}.webp`;
     }
 
-    function getManifestURL() {}
+    function getManifestURL(vid: string) {
+        return `${s3PublicURL.value}/video/${vid}/manifest.mpd`;
+    }
 
-    function getSubtitleURL() {}
+    function getSubtitleURL(vid: string, file: string) {
+        return `${s3PublicURL.value}/video/${vid}/${file}`;
+    }
 
-    function getFontURL() {}
+    function getFontURL(font: string) {
+        return `${s3PublicURL.value}/fonts/${font}`;
+    }
 
     return {
         s3PublicURL,

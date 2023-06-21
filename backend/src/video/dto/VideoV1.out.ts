@@ -69,13 +69,6 @@ export class VideoV1 {
     @Field(() => [VideoChapter])
     chapters: VideoChapter[];
 
-    private fontMap: Record<string, string>;
-
-    @ResolveField(() => VideoFontRef)
-    fonts(): VideoFontRef[] {
-        return Object.entries(this.fontMap).map(([name, cdnName]) => ({
-            name,
-            cdnName,
-        }));
-    }
+    @Field(() => [VideoFontRef])
+    fonts: VideoFontRef[];
 }

@@ -137,6 +137,11 @@ type VideoChapter {
   end: Float!
 }
 
+type VideoFontRef {
+  name: String!
+  cdnName: String!
+}
+
 type WatchEpisode {
   id: String!
   title: String!
@@ -175,6 +180,7 @@ type VideoV1 {
   subtitles: [VideoSubtitle!]!
   resolutions: [VideoResolution!]!
   chapters: [VideoChapter!]!
+  fonts: [VideoFontRef!]!
 }
 
 type MediaRef {
