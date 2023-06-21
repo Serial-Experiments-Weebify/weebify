@@ -59,6 +59,14 @@ export const useURLStore = defineStore('url', () => {
         return `${s3PublicURL.value}/fonts/${font}`;
     }
 
+    function getV0VideoURL(video: string) {
+        return `${s3PublicURL.value}/${video}`;
+    }
+
+    function getFallbackVideoURL(vid: string) {
+        return `${s3PublicURL.value}/video/${vid}/fallback.mp4`;
+    }
+
     return {
         s3PublicURL,
 
@@ -67,5 +75,7 @@ export const useURLStore = defineStore('url', () => {
         getManifestURL,
         getSubtitleURL,
         getFontURL,
+        getV0VideoURL,
+        getFallbackVideoURL,
     };
 });

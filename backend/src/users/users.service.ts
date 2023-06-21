@@ -8,14 +8,14 @@ import {
     UnauthorizedException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { AnyKeys, FilterQuery, Model } from 'mongoose';
+import { FilterQuery, Model } from 'mongoose';
 import { CreateUserInput } from './dto/create-user.input';
-import { UserDocument } from './entities/user.entity';
+import { User, UserDocument } from './entities/user.entity';
 import { roleCompare, UserRole } from './enums/UserRole.enum';
 import { verify, hash } from 'argon2';
 import { UpdateUserInput } from './dto/update-user.input';
 import { v4 as uuid } from 'uuid';
-import { InjectMeiliSearch } from 'nestjs-meilisearch';
+import { InjectMeiliSearch, MeiliSearchService } from 'nestjs-meilisearch';
 import MeiliSearch from 'meilisearch';
 import { Types } from 'mongoose';
 
@@ -29,13 +29,15 @@ export class UsersService {
     private readonly logger = new Logger('User');
 
     constructor(
-        @InjectModel('User')
+        @InjectModel(User.name)
         private userModel: Model<UserDocument>,
 
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //@ts-ignore
         @InjectMeiliSearch()
         private meiliSearch: MeiliSearch,
+
+        private m: MeiliSearchService,
     ) {}
 
     async create(input: CreateUserInput) {
@@ -67,6 +69,21 @@ export class UsersService {
             this.logger.error({ msg: 'Error creating user', e });
             throw new InternalServerErrorException('Could not create user');
         }
+
+        try {
+            await this.m.addDocuments('users', [
+                {
+                    id: u.id,
+                    username: u.username,
+                    displayName: u.displayName,
+                    pfp: u.pfp,
+                    role: u.role,
+                },
+            ]);
+        } catch (e) {
+            console.error(`Update user index failed @ ${u.id}`);
+        }
+
         return u;
     }
 
@@ -114,18 +131,34 @@ export class UsersService {
      * Won't do any more checks
      */
     async trustedUpate(u: UpdateUserInput) {
-        const $set: AnyKeys<UserDocument> = {};
+        const user = await this.userModel.findById(u.id);
+        if (!user) throw new NotFoundException('User does not exist');
 
         if (u.password) {
-            $set.passwordHash = await hash(u.password);
+            user.passwordHash = await hash(u.password);
         }
 
         // set fields if present
-        if (u.bio) $set.bio = u.bio;
-        if (u.email) $set.email = u.email;
-        if (u.displayName) $set.displayName = u.displayName;
+        if (u.bio) user.bio = u.bio;
+        if (u.email) user.email = u.email;
+        if (u.displayName) user.displayName = u.displayName;
 
-        return await this.userModel.findByIdAndUpdate(u.id, { $set });
+        await user.save();
+        try {
+            await this.m.updateDocuments('users', [
+                {
+                    id: user.id,
+                    username: user.username,
+                    displayName: user.displayName,
+                    pfp: user.pfp,
+                    role: user.role,
+                },
+            ]);
+        } catch (e) {
+            console.error(`Update user index failed @ ${user.id}`);
+        }
+
+        return user;
     }
 
     async findOne(idOrUsername: string) {

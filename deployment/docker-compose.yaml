@@ -1,5 +1,5 @@
 version: '3'
-name: weebify1
+name: wtd
 
 services:
   database:
@@ -19,11 +19,9 @@ services:
       - ./mongo/weebifyinit.js:/docker-entrypoint-initdb.d/weebifyinit.js
     expose:
       - 27017
-    ports:
-      - 27017:27017
     restart: unless-stopped
     networks:
-      - weebify
+      - weebify-n1
 
   search:
     image: getmeili/meilisearch:v1.2
@@ -36,7 +34,7 @@ services:
     volumes:
       - meili-data:/meili_data
     networks:
-      - weebify
+      - weebify-n1
 
   s3:
     image: minio/minio
@@ -53,14 +51,14 @@ services:
     command: server --console-address ":9001" /data
     restart: unless-stopped
     networks:
-      - weebify
+      - weebify-n1
 
   s3init:
     image: minio/mc
     depends_on:
       - s3
     volumes:
-      - ./s3init:/s3init.sh
+      - ./s3init.sh:/s3init.sh
     entrypoint: sh
     command: /s3init.sh
     environment:
@@ -69,10 +67,10 @@ services:
       WEEBIFY_CREATE_BUCKET: ${S3_BUCKET}
     restart: no
     networks:
-      - weebify
+      - weebify-n1
 
   backend:
-    image: weebify/backend:latest
+    image: ghcr.io/serial-experiments-weebify/weebify-backend:latest
     build:
       context: ../backend
     expose:
@@ -88,17 +86,16 @@ services:
       S3_PUBLIC_URL: ${S3_PUBLIC_URL}
     restart: unless-stopped
     networks:
-      - weebify
+      - weebify-n1
 
   media:
-    image: weebify/media:latest
+    image: ghcr.io/serial-experiments-weebify/weebify-media:latest
     build:
       context: ../media
     expose:
       - 3001
     depends_on:
       - s3
-      - s3init
       - database
     environment:
       PORT: 3001
@@ -114,10 +111,10 @@ services:
       AUTH_JWT_KEY: ${JWT_KEY}
     restart: unless-stopped
     networks:
-      - weebify
+      - weebify-n1
 
   proxy:
-    image: weebify/frontend:latest
+    image: ghcr.io/serial-experiments-weebify/weebify-frontend:latest
     restart: unless-stopped
     build:
       context: ..
@@ -130,10 +127,10 @@ services:
     ports:
       - 8000:80
     networks:
-      - weebify
+      - weebify-n1
 
 networks:
-  weebify:
+  weebify-n1:
 
 
 volumes:

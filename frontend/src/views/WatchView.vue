@@ -206,13 +206,13 @@ const useFallback = ref(false);
                                 result.watch.video.type == WeebifyVideoType.V0
                             "
                             class="video-v0"
-                            :src="`/cdn/weebify/${(result.watch.video as VideoV0).video}`"
+                            :src="url.getV0VideoURL((result.watch.video as VideoV0).video)"
                             controls
                         ></video>
                         <video
                             v-else-if="useFallback"
                             class="video-v0"
-                            :src="`/cdn/weebify/video/${(result.watch.video as VideoV1).id}/fallback.mp4`"
+                            :src="url.getFallbackVideoURL((result.watch.video as VideoV1).id)"
                             controls
                         ></video>
                         <WeebifyVideo

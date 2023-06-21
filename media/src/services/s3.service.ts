@@ -7,7 +7,7 @@ import { BucketItem } from 'minio';
 @Service()
 export class S3Service {
     protected s3c: Client;
-
+    protected bucket: string;
     constructor(@Inject() cfg: ConfigService) {
         const { vars } = cfg;
 
@@ -19,6 +19,8 @@ export class S3Service {
             accessKey: vars.S3_ACCESS_KEY,
             secretKey: vars.S3_SECRET,
         });
+
+        this.bucket = vars.S3_BUCKET;
     }
 
     protected async bucketsPresent(buckets: string[]) {
@@ -40,7 +42,7 @@ export class S3Service {
     }
 
     public async verify() {
-        return await this.bucketsPresent(['weebify']);
+        return await this.bucketsPresent([this.bucket]);
     }
 
     public async uploadBuffer(bucket: string, key: string, buffer: Buffer) {

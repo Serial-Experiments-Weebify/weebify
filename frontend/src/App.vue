@@ -70,11 +70,7 @@ const canEdit = computed(
             <AddIcon />
         </button>
 
-        <RouterLink
-            class="nav-icon-link"
-            to="/search"
-            v-if="auth.loggedIn && canEdit"
-        >
+        <RouterLink class="nav-icon-link" to="/search" v-if="auth.loggedIn">
             <SearchIcon class="transition-stroke" />
         </RouterLink>
 

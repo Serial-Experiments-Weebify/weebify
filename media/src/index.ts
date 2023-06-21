@@ -17,7 +17,7 @@ async function main() {
     const s3 = Container.get(S3Service);
 
     console.log('Connectiong to DB...');
-    const connection = await connect(vars.MONGO);
+    await connect(vars.MONGO);
     console.log('Database connected');
 
     console.log('Testing S3...');

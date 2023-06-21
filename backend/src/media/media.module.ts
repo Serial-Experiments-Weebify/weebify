@@ -22,6 +22,7 @@ import { VideoModule } from 'src/video/video.module';
                     const schema = MediaSchema;
 
                     schema.post('save', async function (_, next) {
+                        console.log('saving media ', this.title);
                         try {
                             await m.updateDocuments('media', [
                                 {

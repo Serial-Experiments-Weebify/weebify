@@ -6,40 +6,20 @@ import { User, UserSchema } from './entities/user.entity';
 import { MeiliSearchModule, MeiliSearchService } from 'nestjs-meilisearch';
 
 @Module({
+    providers: [UsersResolver, UsersService],
     imports: [
         MongooseModule.forFeatureAsync([
             {
                 name: User.name,
                 imports: [MeiliSearchModule],
                 inject: [MeiliSearchService],
-                useFactory(m: MeiliSearchService) {
+                useFactory() {
                     const schema = UserSchema;
-
-                    schema.post('save', async function (_, next) {
-                        try {
-                            await m.updateDocuments('users', [
-                                {
-                                    id: this.id,
-                                    username: this.username,
-                                    displayName: this.displayName,
-                                    pfp: this.pfp,
-                                    role: this.role,
-                                },
-                            ]);
-                        } catch {
-                            console.error(
-                                `Update user index failed @ ${this.id}`,
-                            );
-                        }
-                        next();
-                    });
-
                     return schema;
                 },
             },
         ]),
     ],
-    providers: [UsersResolver, UsersService],
     exports: [UsersService],
 })
 export class UsersModule {}
