@@ -56,25 +56,25 @@ const canEdit = computed(
         </transition-group>
     </div>
     <nav class="blur">
-        <RouterLink to="/" id="logo">
+        <RouterLink id="logo" to="/">
             <img src="@/assets/icons/logo.svg" alt="logo" />
             Weebify
         </RouterLink>
         <div :style="{ flex: 1 /* spacer */ }"></div>
 
         <button
-            class="reset nav-icon-link"
             v-if="auth.loggedIn && canEdit"
+            class="reset nav-icon-link"
             @click="() => (showNew = true)"
         >
             <AddIcon />
         </button>
 
-        <RouterLink class="nav-icon-link" to="/search" v-if="auth.loggedIn">
+        <RouterLink v-if="auth.loggedIn" class="nav-icon-link" to="/search">
             <SearchIcon class="transition-stroke" />
         </RouterLink>
 
-        <RouterLink class="nav-icon-link" to="/login" v-if="!auth.loggedIn">
+        <RouterLink v-if="!auth.loggedIn" class="nav-icon-link" to="/login">
             <UserIcon class="transition-stroke" />
             Log in
         </RouterLink>
@@ -105,10 +105,10 @@ const canEdit = computed(
                     Profile
                 </RouterLink>
                 <RouterLink
+                    v-if="auth.isAdmin"
                     :to="{
                         name: 'admin',
                     }"
-                    v-if="auth.isAdmin"
                     class="nav-icon-link"
                 >
                     <AdminIcon class="transition-stroke" />

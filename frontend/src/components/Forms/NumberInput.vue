@@ -23,12 +23,12 @@ const emit = defineEmits<{
     <div class="number-input" :class="{ 'external-error': !!props.error }">
         <label :for="`numberin-${props.name}`"
             >{{ props.error ?? props.label }}
-            <span class="required" v-if="props.required">*</span>
+            <span v-if="props.required" class="required">*</span>
         </label>
         <input
+            :id="`numberin-${props.name}`"
             type="number"
             :name="props.name"
-            :id="`numberin-${props.name}`"
             :required="props.required"
             :value="props.value"
             :min="props.min"

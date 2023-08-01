@@ -142,8 +142,8 @@ async function unlinkVideo(mid: string, eid?: string) {
 
             <template #item-btns="item">
                 <button
-                    class="w-medium-button w-button-red"
                     v-if="item.media[0]"
+                    class="w-medium-button w-button-red"
                     @click="
                         () =>
                             unlinkVideo(

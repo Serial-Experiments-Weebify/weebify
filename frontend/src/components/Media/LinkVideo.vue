@@ -104,13 +104,13 @@ function edit() {
 </script>
 
 <template>
-    <WeebifyPopup title="Link video" v-model:show="editing">
+    <WeebifyPopup v-model:show="editing" title="Link video">
         <div v-if="videosLoading">Loading...</div>
         <div class="videos">
             <div
-                class="video"
                 v-for="v in sortedVideos"
                 :key="v.id"
+                class="video"
                 @click="
                     () =>
                         (editing = false) ||
@@ -131,17 +131,17 @@ function edit() {
     </WeebifyPopup>
 
     <button
-        class="w-medium-button w-button-green"
         v-if="!props.videoId"
+        class="w-medium-button w-button-green"
         @click="edit"
     >
         Link video
     </button>
     <button
+        v-else
         class="w-medium-button w-button-yellow disable-loading"
         :disabled="unlinking"
         @click="() => unlink()"
-        v-else
     >
         Unlink Video
     </button>

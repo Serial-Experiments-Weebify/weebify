@@ -47,10 +47,10 @@ function gotFile() {
 <template>
     <div class="file-drop" :class="{ disabled: !enabled }">
         <span class="bt"> Drop a file or click here </span>
-        <span class="st" v-if="!fileText">
+        <span v-if="!fileText" class="st">
             <slot></slot>
         </span>
-        <span class="st" v-else>
+        <span v-else class="st">
             {{ fileText }}
         </span>
         <input

@@ -79,7 +79,7 @@ async function createMedia() {
         />
 
         <h5>Episode Status:</h5>
-        <select class="w-select" v-model="state.status" required>
+        <select v-model="state.status" class="w-select" required>
             <option :value="EpisodeStatus.Aired">Aired</option>
             <option :value="EpisodeStatus.Upcoming">Upcoming</option>
         </select>

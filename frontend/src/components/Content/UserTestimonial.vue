@@ -1,23 +1,16 @@
 <script lang="ts" setup>
-import type { FlexDirectionProperty } from 'csstype';
-
 type Side = 'left' | 'right';
 const props = defineProps<{
     image: string;
     pfpSide: Side;
     name: string;
 }>();
-
-const side2dir: Record<Side, FlexDirectionProperty> = {
-    left: 'row',
-    right: 'row-reverse',
-};
 </script>
 
 <template>
     <div
         class="testimonial"
-        :style="{ flexDirection: side2dir[props.pfpSide] }"
+        :style="{ flexDirection: pfpSide == 'left' ? 'row' : 'row-reverse' }"
     >
         <img :src="props.image" :alt="`${props.name}'s profile picture`" />
         <div class="text">

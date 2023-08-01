@@ -19,11 +19,8 @@ async function login() {
         await authStore.logIn(username.value, password.value);
         notify.addNotification('info', 'Present Day, Present Time...');
         router.replace({ name: 'home' });
-    } catch (e: any) {
-        notify.addNotification(
-            'error',
-            (e as Object)?.toString?.() ?? 'Unknown error'
-        );
+    } catch (e: unknown) {
+        notify.addNotification('error', e?.toString?.() ?? 'Unknown error');
     } finally {
         loading.value = false;
     }
@@ -34,16 +31,16 @@ async function login() {
     <main>
         <form @submit.prevent="login">
             <TextInput
-                type="text"
                 v-model:value="username"
+                type="text"
                 name="username"
                 label="Username:"
                 required
                 autocomplete="username"
             />
             <TextInput
-                type="password"
                 v-model:value="password"
+                type="password"
                 name="password"
                 label="Password:"
                 required

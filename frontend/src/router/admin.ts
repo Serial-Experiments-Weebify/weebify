@@ -1,16 +1,10 @@
-import AdminPanelView from '@/views/AdminPanelView.vue';
 import { AuthState } from './meta';
-
-import ActionsView from '@/views/AdminPanel/ActionsView.vue';
-import ApiKeysView from '@/views/AdminPanel/ApiKeysView.vue';
-import UsersView from '@/views/AdminPanel/UsersView.vue';
-import VideosView from '@/views/AdminPanel/VideosView.vue';
 
 export const children = [
     {
         path: 'actions',
         name: 'admin-actions',
-        component: ActionsView,
+        component: import('@/views/AdminPanel/ActionsView.vue'),
         meta: {
             friendlyName: 'Actions',
             icon: 'mdi-cog',
@@ -19,7 +13,7 @@ export const children = [
     {
         path: 'api-keys',
         name: 'admin-api-keys',
-        component: ApiKeysView,
+        component: import('@/views/AdminPanel/ApiKeysView.vue'),
         meta: {
             friendlyName: 'API Keys',
             icon: 'mdi-key',
@@ -28,7 +22,7 @@ export const children = [
     {
         path: 'users',
         name: 'admin-users',
-        component: UsersView,
+        component: import('@/views/AdminPanel/UsersView.vue'),
         meta: {
             friendlyName: 'Users',
             icon: 'mdi-account',
@@ -37,7 +31,7 @@ export const children = [
     {
         path: 'videos',
         name: 'admin-videos',
-        component: VideosView,
+        component: import('@/views/AdminPanel/VideosView.vue'),
         meta: {
             friendlyName: 'Videos',
             icon: 'mdi-video',
@@ -49,7 +43,7 @@ export const ADMIN_ROUTES = [
     {
         path: '/manage/',
         name: 'admin',
-        component: AdminPanelView,
+        component: import('@/views/AdminPanelView.vue'),
         meta: {
             auth: AuthState.LoggedIn,
         },

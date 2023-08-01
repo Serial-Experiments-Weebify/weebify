@@ -1,16 +1,20 @@
 <script setup lang="ts">
 import UserCard from '../User/UserCard.vue';
+
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+//@ts-ignore
+import { AisHits } from 'vue-instantsearch/vue3/es';
 </script>
 
 <template>
     <ais-hits>
         <!-- eslint-disable vue/no-unused-vars -->
-        <template v-slot="{ items, sendEvent }">
+        <template #default="{ items, sendEvent }">
             <div class="ws-media-hits-list">
                 <RouterLink
-                    class="rl-no-fucking-text-decoration"
                     v-for="item in items"
                     :key="item.id"
+                    class="rl-no-fucking-text-decoration"
                     :to="{ name: 'user', params: { username: item.username } }"
                 >
                     <UserCard :user="item" />

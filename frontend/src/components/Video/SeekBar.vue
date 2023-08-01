@@ -68,15 +68,15 @@ function cursorPositon(e: MouseEvent) {
         @mousemove="cursorPositon"
     >
         <div
-            class="buffer-section"
             v-for="(section, i) in bufferedSections"
             :key="i"
+            class="buffer-section"
             :style="section"
         ></div>
         <div
-            class="chapter"
             v-for="(ch, i) in chapterSections"
             :key="i"
+            class="chapter"
             :style="ch.style"
         >
             <span>{{ ch.title }}</span>

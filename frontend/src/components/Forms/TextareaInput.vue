@@ -20,11 +20,11 @@ const emit = defineEmits<{
     <div class="text-input" :class="{ 'external-error': !!props.error }">
         <label :for="`textin-${props.name}`"
             >{{ props.error ?? props.label }}
-            <span class="required" v-if="props.required">*</span>
+            <span v-if="props.required" class="required">*</span>
         </label>
         <textarea
-            :name="props.name"
             :id="`textarea-${props.name}`"
+            :name="props.name"
             :required="props.required"
             :value="value"
             :class="{ dirty }"

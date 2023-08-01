@@ -1,3 +1,4 @@
+<!-- eslint-disable no-unused-vars -->
 <script setup lang="ts">
 import MediaList from '@/components/Search/MediaList.vue';
 import SearchPagination from '@/components/Search/SearchPagination.vue';
@@ -7,6 +8,19 @@ import { instantMeiliSearch } from '@meilisearch/instant-meilisearch';
 
 import { ref } from 'vue';
 import { useAuthStore } from '@/stores/auth';
+
+import {
+    AisInstantSearch,
+    AisConfigure,
+    AisIndex,
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+} from 'vue-instantsearch/vue3/es/';
+
+enum SearchType {
+    Media,
+    User,
+}
 
 const auth = useAuthStore();
 
@@ -18,11 +32,6 @@ url.pathname = '/api/search';
 const searchClient = instantMeiliSearch(url.toString(), auth.searchKey, {
     finitePagination: true,
 });
-
-enum SearchType {
-    Media,
-    User,
-}
 
 const mode = ref(SearchType.Media);
 </script>
@@ -42,18 +51,18 @@ const mode = ref(SearchType.Media);
 
                 <div class="mode-selector center">
                     <input
+                        id="smode-media"
+                        v-model="mode"
                         type="radio"
                         :value="SearchType.Media"
-                        v-model="mode"
-                        id="smode-media"
                     />
                     <label class="search-cat" for="smode-media"> Media </label>
 
                     <input
+                        id="smode-user"
+                        v-model="mode"
                         type="radio"
                         :value="SearchType.User"
-                        v-model="mode"
-                        id="smode-user"
                     />
                     <label class="search-cat" for="smode-user"> Users </label>
                 </div>
@@ -64,9 +73,9 @@ const mode = ref(SearchType.Media);
                 </template>
 
                 <ais-index
+                    v-else
                     :search-client="searchClient"
                     index-name="users"
-                    v-else
                 >
                     <UserList />
                     <SearchPagination />

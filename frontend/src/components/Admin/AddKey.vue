@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref } from 'vue';
 
 import TextInput from '@/components/Forms/TextInput.vue';
 import { useApolloClient } from '@vue/apollo-composable';
@@ -62,15 +62,13 @@ async function addKey() {
         loading.value = false;
     }
 }
-
-onMounted(() => {});
 </script>
 
 <template>
     <form @submit.prevent="addKey">
         <TextInput
-            type="text"
             v-model:value="state.name"
+            type="text"
             label="Key name"
             name="name"
             required

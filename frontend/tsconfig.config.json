@@ -6,11 +6,13 @@
         "cypress.config.*",
         "playwright.config.*"
     ],
+    "exclude": [
+        "codegen.ts"
+    ],
     "compilerOptions": {
         "composite": true,
         "types": [
             "node"
-        ],
-        "ignoreDeprecations": "5.0"
+        ]
     }
 }

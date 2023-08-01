@@ -8,7 +8,7 @@ function toggle() {
 }
 </script>
 <template>
-    <button @click="toggle" class="dropdown" :class="{ show: popupVisible }">
+    <button class="dropdown" :class="{ show: popupVisible }" @click="toggle">
         <slot></slot>
         <div class="popup">
             <slot name="popup"></slot>

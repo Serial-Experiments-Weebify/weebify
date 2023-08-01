@@ -6,12 +6,12 @@ const props = defineProps<{
 
 <template>
     <svg
+        v-if="props.role == 'GOD'"
         width="32"
         height="32"
         viewBox="0 0 32 32"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        v-if="props.role == 'GOD'"
         title="God"
     >
         <rect width="32" height="32" rx="16" fill="#8CE6B0" />
@@ -24,12 +24,12 @@ const props = defineProps<{
         />
     </svg>
     <svg
+        v-else-if="props.role == 'ADMIN'"
         width="32"
         height="32"
         viewBox="0 0 32 32"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        v-else-if="props.role == 'ADMIN'"
         title="Admin"
     >
         <rect width="32" height="32" rx="16" fill="#E35E6E" />
@@ -39,12 +39,12 @@ const props = defineProps<{
         />
     </svg>
     <svg
+        v-else-if="props.role == 'MODERATOR'"
         width="32"
         height="32"
         viewBox="0 0 32 32"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        v-else-if="props.role == 'MODERATOR'"
         title="Moderator"
     >
         <rect width="32" height="32" rx="16" fill="#FFC107" />
@@ -54,12 +54,12 @@ const props = defineProps<{
         />
     </svg>
     <svg
+        v-else-if="props.role == 'LEGENDARY_MEMBER'"
         width="32"
         height="32"
         viewBox="0 0 32 32"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        v-else-if="props.role == 'LEGENDARY_MEMBER'"
         title="Legendary Member"
     >
         <rect width="32" height="32" rx="16" fill="#4BBBEF" />
@@ -72,12 +72,12 @@ const props = defineProps<{
         />
     </svg>
     <svg
+        v-else
         width="32"
         height="32"
         viewBox="0 0 32 32"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        v-else
         title="User"
     >
         <rect width="32" height="32" rx="16" fill="#FDFEF8" />

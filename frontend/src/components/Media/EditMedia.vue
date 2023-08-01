@@ -172,15 +172,15 @@ onMounted(() => {
     </section>
     <form @submit.prevent="updateMedia">
         <TextInput
+            v-model:value="state.title"
             type="text"
             name="title"
             required
-            v-model:value="state.title"
             label="Title: "
         />
 
         <h5>Media status:</h5>
-        <select class="w-select" v-model="state.status" required>
+        <select v-model="state.status" class="w-select" required>
             <option :value="MediaStatus.Upcoming">Upcoming</option>
             <option :value="MediaStatus.Airing">Airing</option>
             <option :value="MediaStatus.Finished">Finished</option>
@@ -199,15 +199,15 @@ onMounted(() => {
         <h5>Alt titles:</h5>
         <StringListEditorVue v-model:list="state.altTitles" />
         <TextareaInput
-            name="Description"
             v-model:value="state.description"
+            name="Description"
             required
             label="Description: "
         />
         <TextInput
+            v-model:value="state.anilistId"
             type="text"
             name="anilist-id"
-            v-model:value="state.anilistId"
             label="Anilist ID:"
         />
         <h5>Genres:</h5>

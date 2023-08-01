@@ -13,10 +13,10 @@ const auth = useAuthStore();
                 <span class="hl">anime</span>
                 streaming website
             </h1>
-            <div class="buttons" v-if="auth.loggedIn">
+            <div v-if="auth.loggedIn" class="buttons">
                 <RouterLink to="/home" class="w-big-button">Home</RouterLink>
             </div>
-            <div class="buttons" v-else>
+            <div v-else class="buttons">
                 <RouterLink to="/login" class="w-big-button">Log in</RouterLink>
                 <RouterLink to="/signup" class="w-big-button"
                     >Sign up</RouterLink

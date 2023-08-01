@@ -100,8 +100,8 @@ const adding = ref(false);
             </template>
             <template #item-revoke="{ id }">
                 <button
-                    @click="()=>revoke(id as string)"
                     class="w-medium-button w-button-red"
+                    @click="()=>revoke(id as string)"
                 >
                     Revoke
                 </button>

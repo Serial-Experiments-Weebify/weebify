@@ -6,23 +6,23 @@ const props = defineProps<{
 
 <template>
     <svg
+        v-if="props.type == 'success'"
         width="48"
         height="48"
         viewBox="0 0 48 48"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        v-if="props.type == 'success'"
     >
         <circle cx="24" cy="24" r="17" stroke="#14131C" stroke-width="2" />
         <path d="M15 23.5L21.5 30L33.5 18" stroke="#14131C" stroke-width="2" />
     </svg>
     <svg
+        v-else-if="props.type == 'info'"
         width="48"
         height="48"
         viewBox="0 0 48 48"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        v-else-if="props.type == 'info'"
     >
         <circle cx="24" cy="24" r="17" stroke="#14131C" stroke-width="2" />
         <path
@@ -32,12 +32,12 @@ const props = defineProps<{
         />
     </svg>
     <svg
+        v-else-if="props.type == 'warn'"
         width="48"
         height="48"
         viewBox="0 0 48 48"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        v-else-if="props.type == 'warn'"
     >
         <path
             d="M24 18V29.5M23.5 32.5H24.5V33.5H23.5V32.5Z"
@@ -51,12 +51,12 @@ const props = defineProps<{
         />
     </svg>
     <svg
+        v-else-if="props.type == 'error'"
         width="48"
         height="48"
         viewBox="0 0 48 48"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
-        v-else-if="props.type == 'error'"
     >
         <path d="M17 17L31 31M31 17L17 31" stroke="#14131C" stroke-width="2" />
         <path

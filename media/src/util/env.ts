@@ -25,7 +25,7 @@ export function envVar<T>(
 export type EnvVarsDefiniton = {
     [key: string]: {
         transformer?: (v: string) => any;
-        defaultValue: any | null;
+        defaultValue: unknown | null;
     };
 };
 

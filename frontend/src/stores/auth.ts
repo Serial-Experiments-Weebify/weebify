@@ -85,13 +85,13 @@ export const useAuthStore = defineStore(
             });
 
             if (response.errors) throw response.errors[0].message;
-            //it worked
+            if (!response.data) throw 'No data';
             if (!response.data?.loginSession.token) throw 'No token';
             loggedIn.value = true;
 
-            token.value = response.data!.loginSession.token;
-            searchKey.value = response.data!.loginSession.searchKey;
-            expiration.value = new Date(response.data!.loginSession.expiresAt);
+            token.value = response.data.loginSession.token;
+            searchKey.value = response.data.loginSession.searchKey;
+            expiration.value = new Date(response.data.loginSession.expiresAt);
 
             const q = await apollo.client.query({
                 query: ME_QUERY,

@@ -63,7 +63,7 @@ const rules = {
 
 const validate = useVuelidate(rules, form);
 const invalid = computed(() => {
-    let iv = {} as Record<any, string | undefined>;
+    let iv = {} as Record<string, string | undefined>;
     validate.value.$errors.forEach((err) => {
         const m = err.$message;
         if (typeof m === 'string') iv[err.$property] = m;
@@ -101,7 +101,7 @@ async function signup() {
             );
             router.push({ name: 'login' });
         }
-    } catch (e: any) {
+    } catch (e: unknown) {
         notify.addNotification('error', e?.toString() ?? 'Unknown error');
     } finally {
         loading.value = false;
@@ -111,10 +111,10 @@ async function signup() {
 
 <template>
     <main>
-        <form @submit.prevent="signup" class="wform">
+        <form class="wform" @submit.prevent="signup">
             <TextInput
-                type="text"
                 v-model:value="form.username"
+                type="text"
                 name="username"
                 label="Username:"
                 required
@@ -122,16 +122,16 @@ async function signup() {
                 autocomplete="username"
             />
             <TextInput
-                type="text"
                 v-model:value="form.email"
+                type="text"
                 name="email"
                 label="Email:"
                 :error="invalid.email"
                 autocomplete="email"
             />
             <TextInput
-                type="password"
                 v-model:value="form.password"
+                type="password"
                 name="password"
                 label="Password:"
                 required
@@ -139,16 +139,16 @@ async function signup() {
                 autocomplete="new-password"
             />
             <TextInput
-                type="password"
                 v-model:value="form.password2"
+                type="password"
                 name="password2"
                 label="Password (repeat):"
                 :error="invalid.password2"
                 required
             />
             <TextInput
-                type="text"
                 v-model:value="form.invite"
+                type="text"
                 name="invite"
                 label="Invite code:"
                 :error="invalid.invite"

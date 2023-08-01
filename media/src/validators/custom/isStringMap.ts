@@ -12,7 +12,7 @@ export function IsStringMap(validationOptions?: ValidationOptions) {
             propertyName: propertyName,
             options: validationOptions,
             validator: {
-                validate(value: any, args: ValidationArguments) {
+                validate(value: unknown, args: ValidationArguments) {
                     if (typeof value !== 'object') return false;
                     return (
                         Object.entries(value)

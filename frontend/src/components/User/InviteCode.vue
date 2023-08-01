@@ -50,7 +50,7 @@ async function remove() {
         } else {
             emit('removed');
         }
-    } catch (e: any) {
+    } catch (e: unknown) {
         notify.addNotification('error', e?.toString() ?? 'Unknown error');
     } finally {
         removing.value = false;
@@ -64,8 +64,8 @@ async function remove() {
             props.inviteCode
         }}</span>
         <button
-            class="remove w-medium-button w-button-red disable-loading"
             v-if="canRemove"
+            class="remove w-medium-button w-button-red disable-loading"
             :disabled="removing"
             @click="remove"
         >

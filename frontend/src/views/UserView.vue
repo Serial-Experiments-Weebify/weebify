@@ -121,7 +121,7 @@ async function updateFollow(v: boolean) {
             auth.updateFollow(id, v);
             refetch();
         }
-    } catch (e: any) {
+    } catch (e: unknown) {
         notify.addNotification('error', e?.toString() ?? 'Unknown error');
         console.error(e);
     } finally {
@@ -223,9 +223,9 @@ const usernameEmail = computed(() => {
                     <span class="t"> Followers: </span>
                     <div class="ulist scroll">
                         <RouterLink
-                            class="rl-no-fucking-text-decoration"
                             v-for="u in result?.user.followers ?? []"
                             :key="u.username"
+                            class="rl-no-fucking-text-decoration"
                             :to="{
                                 name: 'user',
                                 params: { username: u.username },
@@ -239,9 +239,9 @@ const usernameEmail = computed(() => {
                     <span class="t"> Following: </span>
                     <div class="ulist scroll">
                         <RouterLink
-                            class="rl-no-fucking-text-decoration"
                             v-for="u in result?.user.following ?? []"
                             :key="u.username"
+                            class="rl-no-fucking-text-decoration"
                             :to="{
                                 name: 'user',
                                 params: { username: u.username },
@@ -251,7 +251,7 @@ const usernameEmail = computed(() => {
                         </RouterLink>
                     </div>
                 </div>
-                <div class="bio" v-if="result?.user.availableInviteCodes">
+                <div v-if="result?.user.availableInviteCodes" class="bio">
                     <span class="t">Invite codes:</span>
                     <div class="invites scroll">
                         <InviteCode
@@ -265,7 +265,7 @@ const usernameEmail = computed(() => {
                 </div>
             </div>
         </div>
-        <WeebifyPopup title="Edit user" v-model:show="showEdit">
+        <WeebifyPopup v-model:show="showEdit" title="Edit user">
             <EditUserPopup
                 :id="result?.user.id"
                 :display-name="result?.user.displayName"
@@ -276,7 +276,7 @@ const usernameEmail = computed(() => {
             />
         </WeebifyPopup>
 
-        <WeebifyPopup title="Manage sessions" v-model:show="showSessions">
+        <WeebifyPopup v-model:show="showSessions" title="Manage sessions">
             <RevokeSessionsPopup
                 :sessions="result?.user.sessions ?? []"
                 :user="result?.user.id"

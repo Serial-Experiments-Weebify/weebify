@@ -31,7 +31,7 @@ const props = withDefaults(
         role?: UserRole;
         id?: string;
     }>(),
-    { displayName: '', bio: '', email: '', role: UserRole.User }
+    { displayName: '', bio: '', email: '', role: UserRole.User, id: undefined }
 );
 
 const emit = defineEmits<{
@@ -96,7 +96,7 @@ const rules = {
 const validate = useVuelidate(rules, updateUserData);
 
 const invalid = computed(() => {
-    let iv = {} as Record<any, string | undefined>;
+    let iv = {} as Record<string, string | undefined>;
     validate.value.$errors.forEach((err) => {
         const m = err.$message;
         if (typeof m === 'string') iv[err.$property] = m;
@@ -144,7 +144,7 @@ async function updateProfile() {
             );
             emit('updated');
         }
-    } catch (e: any) {
+    } catch (e: unknown) {
         notify.addNotification('error', e?.toString() ?? 'Unknown error');
     } finally {
         loading.value = false;
@@ -231,7 +231,7 @@ async function setRole() {
             notify.addNotification('success', 'Updated role');
             emit('updated');
         }
-    } catch (e: any) {
+    } catch (e: unknown) {
         notify.addNotification('error', e?.toString() ?? 'Unknown error');
     } finally {
         roleLoading.value = false;
@@ -266,7 +266,7 @@ async function createInvite() {
             );
             emit('updated');
         }
-    } catch (e: any) {
+    } catch (e: unknown) {
         notify.addNotification('error', e?.toString() ?? 'Unknown error');
     } finally {
         inviteLoading.value = false;
@@ -310,25 +310,25 @@ onMounted(() => {
             label="Bio:"
         />
         <TextInput
-            type="password"
             v-model:value="updateUserData.password"
+            type="password"
             :error="invalid.password"
             name="password"
             label="New password:"
             autocomplete="new-password"
         />
         <TextInput
-            type="password"
             v-model:value="updateUserData.password2"
+            type="password"
             :error="invalid.password2"
             name="password2"
             label="New password (repeat):"
             autocomplete="new-password"
         />
         <TextInput
-            type="password"
             v-if="editSelf"
             v-model:value="updateUserData.oldPassword"
+            type="password"
             :error="invalid.oldPassword"
             name="cpassword"
             label="Current password"
@@ -364,8 +364,8 @@ onMounted(() => {
         <h4>Generate invite code</h4>
         <button
             class="w-medium-button"
-            @click="createInvite"
             :disabled="inviteLoading"
+            @click="createInvite"
         >
             Add invite code
         </button>

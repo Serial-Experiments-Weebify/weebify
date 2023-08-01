@@ -193,8 +193,8 @@ const selectedEpisode = ref<Ep | null>(null);
     <main class="detailed-view">
         <!-- Description popup -->
         <WeebifyPopup
-            :title="media?.title ?? ''"
             v-model:show="showBigDescription"
+            :title="media?.title ?? ''"
         >
             <p>
                 {{ media?.description }}
@@ -202,16 +202,16 @@ const selectedEpisode = ref<Ep | null>(null);
         </WeebifyPopup>
 
         <!-- Edit popup -->
-        <WeebifyPopup title="Edit media" v-model:show="showEdit">
+        <WeebifyPopup v-model:show="showEdit" title="Edit media">
             <EditMedia
-                @updated="() => refetch()"
                 :id="media?.id ?? ''"
                 :current-data="media"
+                @updated="() => refetch()"
             />
         </WeebifyPopup>
 
         <!-- Delete Popup -->
-        <WeebifyPopup title="Confirmation" v-model:show="confirmDelete">
+        <WeebifyPopup v-model:show="confirmDelete" title="Confirmation">
             <p>Are you sure you want to delete this media?</p>
             <button
                 class="w-big-button w-button-green mr10"
@@ -266,18 +266,18 @@ const selectedEpisode = ref<Ep | null>(null);
                     </a>
                 </div>
                 <h2
-                    class="alt-title"
                     v-for="(title, i) in media?.altTitles"
                     :key="i"
+                    class="alt-title"
                 >
                     {{ title }}
                 </h2>
                 <h1>{{ media?.title }} ({{ media?.year }})</h1>
                 <div class="tags">
                     <span
-                        class="tag"
                         v-for="(tag, index) in media?.genres"
                         :key="index"
+                        class="tag"
                         >{{ tag }}</span
                     >
                 </div>
@@ -291,8 +291,8 @@ const selectedEpisode = ref<Ep | null>(null);
         </div>
 
         <!-- TV -->
-        <div class="media-list" v-if="media?.kind === MediaKind.Tv">
-            <div class="episode-buttons" v-if="canEdit">
+        <div v-if="media?.kind === MediaKind.Tv" class="media-list">
+            <div v-if="canEdit" class="episode-buttons">
                 <span>Episode tools: </span>
                 <button
                     class="w-medium-button"
@@ -300,9 +300,9 @@ const selectedEpisode = ref<Ep | null>(null);
                 >
                     Add Episode
                 </button>
-                <WeebifyPopup title="Add episode" v-model:show="showNewEpisode">
+                <WeebifyPopup v-model:show="showNewEpisode" title="Add episode">
                     <AddEpisode
-                        :mId="media.id"
+                        :m-id="media.id"
                         @updated="
                             () => {
                                 refetch();
@@ -318,7 +318,7 @@ const selectedEpisode = ref<Ep | null>(null);
                     Quickfill
                 </button>
 
-                <WeebifyPopup title="Quickfill" v-model:show="showQuickfill">
+                <WeebifyPopup v-model:show="showQuickfill" title="Quickfill">
                     <QuickfillEpisodes
                         :id="media.id"
                         @updated="
@@ -336,7 +336,7 @@ const selectedEpisode = ref<Ep | null>(null);
                     title="Edit episode"
                 >
                     <EditEpisode
-                        :mId="media.id"
+                        :m-id="media.id"
                         :episode="selectedEpisode!"
                         @updated="
                             () => {
@@ -348,8 +348,8 @@ const selectedEpisode = ref<Ep | null>(null);
                 </WeebifyPopup>
 
                 <WeebifyPopup
-                    title="Confirm delete"
                     v-model:show="showDeleteEpisode"
+                    title="Confirm delete"
                 >
                     <p>
                         Are you sure you want to delete <br />
@@ -375,11 +375,11 @@ const selectedEpisode = ref<Ep | null>(null);
                 <RouterLink
                     v-for="episode in media.episodes"
                     :key="episode.id"
+                    ref="episodeElements"
                     :to="{
                         name: 'watch',
                         params: { mid: media.id, eid: episode.id },
                     }"
-                    ref="episodeElements"
                     class="episode"
                     :class="{
                         disabled: !episode.videoId,
@@ -398,8 +398,8 @@ const selectedEpisode = ref<Ep | null>(null);
                     >
                     <div style="flex: 1"></div>
                     <div
-                        class="episode-edit"
                         v-if="canEdit"
+                        class="episode-edit"
                         @click.prevent.stop
                     >
                         <LinkVideo
@@ -426,10 +426,10 @@ const selectedEpisode = ref<Ep | null>(null);
 
         <!-- Movie -->
         <div
-            class="media-list movie-play"
             v-else-if="media?.kind === MediaKind.Movie"
+            class="media-list movie-play"
         >
-            <div class="movie-edit" v-if="canEdit">
+            <div v-if="canEdit" class="movie-edit">
                 <LinkVideo :media-id="media.id" :video-id="media.videoId" />
             </div>
             <RouterLink

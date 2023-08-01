@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import MediaCard from '@/components/Media/MediaCard.vue';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+//@ts-ignore
+import { AisHits } from 'vue-instantsearch/vue3/es';
 </script>
 
 <template>
     <ais-hits>
         <!-- eslint-disable vue/no-unused-vars -->
-        <template v-slot="{ items, sendEvent }">
+        <template #default="{ items, sendEvent }">
             <div class="ws-media-hits-list">
                 <RouterLink
                     v-for="item in items"

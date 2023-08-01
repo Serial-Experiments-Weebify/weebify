@@ -4,8 +4,6 @@ import { createPinia } from 'pinia';
 import { apolloClient } from './apollo';
 import { DefaultApolloClient } from '@vue/apollo-composable';
 import persistedState from 'pinia-plugin-persistedstate';
-//@ts-ignore
-import InstantSearch from 'vue-instantsearch/vue3/es';
 
 import App from './App.vue';
 import '@/assets/index.less';
@@ -17,7 +15,6 @@ pinia.use(persistedState);
 
 app.use(pinia);
 app.use(router);
-app.use(InstantSearch);
 
 app.provide(DefaultApolloClient, apolloClient);
 

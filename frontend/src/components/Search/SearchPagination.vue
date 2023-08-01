@@ -1,9 +1,13 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+//@ts-ignore
+import { AisPagination } from 'vue-instantsearch/vue3/es';
+</script>
 
 <template>
     <ais-pagination :padding="3" class="ws-pag-list">
         <template
-            v-slot="{
+            #default="{
                 currentRefinement,
                 nbPages,
                 pages,
@@ -34,9 +38,9 @@
             </li> -->
 
             <button
-                class="ws-pag-btn ws-page"
                 v-for="page in pages"
                 :key="page"
+                class="ws-pag-btn ws-page"
                 :class="{ 'ws-page-active': currentRefinement === page }"
                 @click="() => refine(page)"
             >

@@ -22,10 +22,10 @@ const hasSubroute = computed(() => {
             <div class="manage-sidebar">
                 <h1>Admin</h1>
                 <RouterLink
-                    class="route"
                     v-for="rt in AdminSubroutes"
-                    :class="{ active: rt.name === selectedRoute }"
                     :key="rt.name"
+                    class="route"
+                    :class="{ active: rt.name === selectedRoute }"
                     :to="{ name: rt.name }"
                 >
                     {{ rt.meta.friendlyName }}
@@ -33,7 +33,7 @@ const hasSubroute = computed(() => {
             </div>
             <div class="manage-view" :class="{ empty: !hasSubroute }">
                 <router-view v-if="hasSubroute"> </router-view>
-                <span class="no-selection" v-else
+                <span v-else class="no-selection"
                     >Select a category from the menu</span
                 >
             </div>

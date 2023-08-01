@@ -4,9 +4,12 @@ import { WeebifyVideoType, type VideoV0, type VideoV1 } from '@/_gql/graphql';
 import ToggleButton from '@/components/ToggleButton.vue';
 import router from '@/router';
 import { useQuery } from '@vue/apollo-composable';
-import { computed, ref, watch } from 'vue';
-import WeebifyVideo from '@/components/Video/WeebifyPlayer.vue';
+import { computed, defineAsyncComponent, ref, watch } from 'vue';
 import { useURLStore } from '@/stores/url';
+
+const WeebifyVideo = defineAsyncComponent(
+    () => import('@/components/Video/WeebifyPlayer.vue')
+);
 
 const url = useURLStore();
 
@@ -70,7 +73,7 @@ const { result, loading, error, refetch } = useQuery(
                                 h
                             }
                             chapters {
-                                start	
+                                start
                             	end
                                 title
                             }
@@ -138,9 +141,9 @@ const useFallback = ref(false);
         <div v-else class="watch sane-width">
             <div class="header">
                 <button
+                    v-if="hasEpisodes"
                     class="arrow-button prev"
                     :disabled="!result?.watch.previousEpisode"
-                    v-if="hasEpisodes"
                     @click="prevEp"
                 >
                     <svg
@@ -158,7 +161,7 @@ const useFallback = ref(false);
                     </svg>
                 </button>
 
-                <div class="title" v-if="hasEpisodes">
+                <div v-if="hasEpisodes" class="title">
                     <h2>
                         {{ result?.watch.title }} - Episode
                         {{ result?.watch.currentEpisode?.episodeNumber
@@ -168,16 +171,16 @@ const useFallback = ref(false);
                         {{ result?.watch.currentEpisode?.title }}
                     </h1>
                 </div>
-                <div class="title" v-else>
+                <div v-else class="title">
                     <h1>
                         {{ result?.watch.title }}
                     </h1>
                 </div>
 
                 <button
+                    v-if="hasEpisodes"
                     class="arrow-button next"
                     :disabled="!result?.watch.nextEpisode"
-                    v-if="hasEpisodes"
                     @click="nextEp"
                 >
                     <svg
@@ -231,7 +234,7 @@ const useFallback = ref(false);
                     </div>
                 </div>
                 <div class="ep-wrap">
-                    <div class="episodes" v-if="hasEpisodes">
+                    <div v-if="hasEpisodes" class="episodes">
                         <RouterLink
                             v-for="ep in result?.watch.episodes ?? []"
                             :key="ep.id"
@@ -302,7 +305,7 @@ main {
         right: 0;
         bottom: 0;
         background: linear-gradient(to bottom, #14131c00, #14131c),
-            url('../assets/cover.jpg');
+            url('@/assets/images/coverDefault.webp');
         background-size: cover !important;
         background-position: center !important;
         filter: blur(5px);

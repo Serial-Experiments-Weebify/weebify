@@ -63,8 +63,8 @@ onBeforeUnmount(stop);
             {{ props.text }}
         </p>
         <div
-            class="life"
             v-if="duration > alive"
+            class="life"
             :style="{ width: `${((duration - alive) / duration) * 100}%` }"
         ></div>
     </div>

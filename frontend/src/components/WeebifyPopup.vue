@@ -16,7 +16,7 @@ function close() {
 </script>
 
 <template>
-    <Teleport to="#popups" v-if="props.show">
+    <Teleport v-if="props.show" to="#popups">
         <div class="popup-blur">
             <div class="popup sane-width">
                 <h3 class="title">{{ props.title }}</h3>

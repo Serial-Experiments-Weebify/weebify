@@ -35,11 +35,11 @@ function rm(index: number) {
     <div class="string-list-editor">
         <div class="list">
             <div
-                class="item"
                 v-for="(item, index) in internalList"
                 :key="index"
+                class="item"
             >
-                <input type="text" v-model="internalList[index]" />
+                <input v-model="internalList[index]" type="text" />
                 <button type="button" class="reset" @click="() => rm(index)">
                     x
                 </button>

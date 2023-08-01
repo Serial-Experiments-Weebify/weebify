@@ -59,27 +59,27 @@ const { result, error, loading } = useQuery(HOME_QUERY);
 </script>
 
 <template>
-    <main class="home" v-if="!error">
+    <main v-if="!error" class="home">
         <h1 class="greeting">{{ greeting }}</h1>
 
         <div class="random-picks sane-width">
             <h1>Random pick just for you</h1>
-            <div class="placeholder loading" v-if="loading"></div>
+            <div v-if="loading" class="placeholder loading"></div>
             <MediaBanner
                 v-for="m in result?.homeRecomendations.random"
-                :media="m"
                 :key="m.id"
+                :media="m"
             />
         </div>
 
         <div class="airing sane-width">
             <h1>Currently airing</h1>
-            <div class="placeholder loading" v-if="loading"></div>
-            <div class="medialist" v-else>
+            <div v-if="loading" class="placeholder loading"></div>
+            <div v-else class="medialist">
                 <RouterLink
                     v-for="m in result?.homeRecomendations.airing"
-                    :to="{ name: 'media', params: { id: m.id } }"
                     :key="m.id"
+                    :to="{ name: 'media', params: { id: m.id } }"
                 >
                     <MediaCard :media="m" />
                 </RouterLink>
@@ -88,12 +88,12 @@ const { result, error, loading } = useQuery(HOME_QUERY);
 
         <div class="recent sane-width">
             <h1>Recently added</h1>
-            <div class="placeholder loading" v-if="loading"></div>
-            <div class="medialist" v-else>
+            <div v-if="loading" class="placeholder loading"></div>
+            <div v-else class="medialist">
                 <RouterLink
                     v-for="m in result?.homeRecomendations.recent"
-                    :to="{ name: 'media', params: { id: m.id } }"
                     :key="m.id"
+                    :to="{ name: 'media', params: { id: m.id } }"
                 >
                     <MediaCard :media="m" />
                 </RouterLink>

@@ -6,13 +6,13 @@ import { useApolloClient } from '@vue/apollo-composable';
 import { ref } from 'vue';
 
 type TIndex = 'user' | 'media';
-type Nothing = Record<any, never>;
+type Nothing = Record<never, never>;
 
 const props = defineProps<{
     index: TIndex;
 }>();
 
-const REBUILD_MUTS: Record<TIndex, TypedDocumentNode<any, Nothing>> = {
+const REBUILD_MUTS: Record<TIndex, TypedDocumentNode<unknown, Nothing>> = {
     user: gql(`
         mutation RebuildUserSearch {
             rebuildUserSearch

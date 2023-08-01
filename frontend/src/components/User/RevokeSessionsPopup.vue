@@ -47,7 +47,7 @@ async function remove(sid: string) {
                 errors[0].message ?? 'Unknown error'
             );
         }
-    } catch (e: any) {
+    } catch (e: unknown) {
         notify.addNotification('error', e?.toString() ?? 'Unknown error');
     } finally {
         removing.value = '';
@@ -108,16 +108,16 @@ const sortedSessions = computed(() => {
 <template>
     <section class="sessions">
         <div
-            class="session"
             v-for="session in sortedSessions"
             :key="session.sid"
+            class="session"
         >
             <span class="sid">
                 {{ session.sid }}
                 <button
                     class="w-base-button w-button-red disable-loading"
-                    @click="() => remove(session.sid)"
                     :disabled="removing === session.sid"
+                    @click="() => remove(session.sid)"
                 >
                     Revoke
                 </button>

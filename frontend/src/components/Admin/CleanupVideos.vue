@@ -85,7 +85,7 @@ const niceDeleteList = computed(() => {
             Clean
         </button>
 
-        <WeebifyPopup title="Confirm delete" v-model:show="showConfirm">
+        <WeebifyPopup v-model:show="showConfirm" title="Confirm delete">
             <pre class="arr">{{ niceDeleteList }}</pre>
 
             <button

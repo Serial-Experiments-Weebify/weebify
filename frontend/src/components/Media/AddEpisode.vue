@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref } from 'vue';
 
 import TextInput from '@/components/Forms/TextInput.vue';
 import { useApolloClient } from '@vue/apollo-composable';
@@ -75,8 +75,6 @@ async function addEpisode() {
         loading.value = false;
     }
 }
-
-onMounted(() => {});
 </script>
 
 <template>
@@ -92,23 +90,23 @@ onMounted(() => {});
         />
 
         <TextInput
+            v-model:value="state.title"
             type="text"
             name="title"
             required
-            v-model:value="state.title"
             label="Title: "
         />
 
         <h5>Episode Status:</h5>
-        <select class="w-select" v-model="state.status" required>
+        <select v-model="state.status" class="w-select" required>
             <option :value="EpisodeStatus.Aired">Aired</option>
             <option :value="EpisodeStatus.Upcoming">Upcoming</option>
         </select>
 
         <TextInput
+            v-model:value="state.extra"
             type="text"
             name="anilist-id"
-            v-model:value="state.extra"
             label="Extra label:"
         />
 

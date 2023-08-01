@@ -1,4 +1,8 @@
 <script setup lang="ts">
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+//@ts-ignore
+import { AisSearchBox } from 'vue-instantsearch/vue3/es';
+
 function val(e: EventTarget) {
     return (e as HTMLInputElement).value;
 }
@@ -6,7 +10,7 @@ function val(e: EventTarget) {
 
 <template>
     <ais-search-box>
-        <template v-slot="{ currentRefinement, isSearchStalled, refine }">
+        <template #default="{ currentRefinement, isSearchStalled, refine }">
             <input
                 type="search"
                 class="ws-search-box"

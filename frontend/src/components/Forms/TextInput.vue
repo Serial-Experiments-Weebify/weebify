@@ -14,6 +14,8 @@ const props = withDefaults(
     }>(),
     {
         type: 'text',
+        autocomplete: undefined,
+        error: undefined,
     }
 );
 
@@ -28,12 +30,12 @@ const emit = defineEmits<{
     <div class="text-input" :class="{ 'external-error': !!props.error }">
         <label :for="`textin-${props.name}`"
             >{{ props.error ?? props.label }}
-            <span class="required" v-if="props.required">*</span>
+            <span v-if="props.required" class="required">*</span>
         </label>
         <input
+            :id="`textin-${props.name}`"
             :type="props.type"
             :name="props.name"
-            :id="`textin-${props.name}`"
             :autocomplete="props.autocomplete"
             :required="props.required"
             :value="value"

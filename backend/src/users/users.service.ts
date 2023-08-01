@@ -173,7 +173,7 @@ export class UsersService {
         return await this.userModel.find();
     }
 
-    async deleteAccount(id: string) {
+    async deleteAccount(id: string): Promise<{ deletedCount: number }> {
         return await this.userModel.deleteOne({ _id: id });
     }
 

@@ -11,7 +11,7 @@ import {
     MediaPlayer,
     type Bitrate,
     type MediaPlayerClass,
-    type MediaType,
+    type TrackChangeRenderedEvent,
 } from 'dashjs';
 import type {
     VideoChapter,
@@ -89,15 +89,16 @@ onMounted(() => {
         }
     });
 
-    p.on(MediaPlayer.events.TRACK_CHANGE_RENDERED, (e) => {
-        // when audio language switches, update state
-        const type = (e as any).mediaType as MediaType;
-        const newMedia = (e as any).newMediaInfo as MediaInfo;
+    p.on(MediaPlayer.events.TRACK_CHANGE_RENDERED, ((
+        e: TrackChangeRenderedEvent
+    ) => {
+        const type = e.mediaType;
+        const newIndex = e.newMediaInfo.index;
 
-        if (type == 'audio' && typeof newMedia.index === 'number') {
-            audioTrackIndex.value = newMedia.index;
+        if (type == 'audio' && typeof newIndex === 'number') {
+            audioTrackIndex.value = newIndex;
         }
-    });
+    }) as () => Event);
 
     p.initialize(
         video.value,
@@ -200,8 +201,10 @@ const showControls = computed(
 
 <template>
     <div
+        ref="root"
         tabindex="0"
         class="container"
+        :class="{ hide: !showControls }"
         @keydown.capture.space="playing = !playing"
         @keydown.capture.k="playing = !playing"
         @keydown.capture.f="isFullscreen ? fsExit() : fsEnter()"
@@ -209,12 +212,10 @@ const showControls = computed(
         @keydown.capture.j="currentTime -= 5"
         @ketdown.capture.right="currentTime += 5"
         @keydown.capture.l="currentTime += 5"
-        ref="root"
-        :class="{ hide: !showControls }"
     >
         <video ref="video" @click="playing = !playing" />
-        <div class="controls-bottom" ref="controls">
-            <div class="settings" v-if="showSettings">
+        <div ref="controls" class="controls-bottom">
+            <div v-if="showSettings" class="settings">
                 <div class="resolutions">
                     <span class="st">Video</span>
                     <span
@@ -275,11 +276,11 @@ const showControls = computed(
                 </span>
 
                 <input
+                    v-model="volume"
                     type="range"
                     min="0"
                     max="1"
                     step="0.01"
-                    v-model="volume"
                 />
                 <div style="flex: 1"></div>
 
