@@ -16,7 +16,7 @@ import { verify, hash } from 'argon2';
 import { UpdateUserInput } from './dto/update-user.input';
 import { v4 as uuid } from 'uuid';
 import { InjectMeiliSearch, MeiliSearchService } from 'nestjs-meilisearch';
-import MeiliSearch from 'meilisearch';
+import { type MeiliSearch } from 'meilisearch';
 import { Types } from 'mongoose';
 
 const DEFAULT_PFP = 'default';
@@ -38,7 +38,7 @@ export class UsersService {
         private meiliSearch: MeiliSearch,
 
         private m: MeiliSearchService,
-    ) {}
+    ) { }
 
     async create(input: CreateUserInput) {
         const u = new this.userModel();
@@ -115,7 +115,7 @@ export class UsersService {
     }
 
     async updateSelf(u: UpdateUserInput, self: UserDocument) {
-        u.id = self._id;
+        u.id = self._id as string;
         if (u.password || u.email) {
             if (!u.oldPassword)
                 throw new BadRequestException('Missing old password');
@@ -275,11 +275,9 @@ export class UsersService {
 
     async rebuildSearch() {
         await this.meiliSearch.deleteIndexIfExists('users');
-        const t = await this.meiliSearch.createIndex('users', {
+        await this.meiliSearch.createIndex('users', {
             primaryKey: 'id',
         });
-
-        await this.meiliSearch.waitForTask(t.taskUid);
 
         const data = await this.userModel.aggregate([
             {
@@ -294,11 +292,10 @@ export class UsersService {
             },
         ]);
 
-        const st = await this.meiliSearch
+        await this.meiliSearch
             .index('users')
             .updateDocuments(data, { primaryKey: 'id' });
 
-        await this.meiliSearch.waitForTask(st.taskUid);
         return true;
     }
 

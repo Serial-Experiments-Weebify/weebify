@@ -74,7 +74,7 @@ export class S3Service {
             const accumulator: string[] = [];
 
             stream.addListener('data', (c: BucketItem) =>
-                accumulator.push(c.name),
+                c.name && accumulator.push(c.name),
             );
             stream.addListener('close', () => resolve(accumulator));
             stream.addListener('error', reject);

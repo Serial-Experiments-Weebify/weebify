@@ -122,7 +122,10 @@ async function updateFollow(v: boolean) {
             refetch();
         }
     } catch (e: unknown) {
-        notify.addNotification('error', e?.toString() ?? 'Unknown error');
+        notify.addNotification(
+            'error',
+            (e as object).toString() ?? 'Unknown error'
+        );
         console.error(e);
     } finally {
         followLoading.value = false;

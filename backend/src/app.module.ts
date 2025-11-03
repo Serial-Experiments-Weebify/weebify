@@ -38,7 +38,7 @@ import { VideoModule } from './video/video.module';
             imports: [AuthModule],
             inject: [AuthService],
             useFactory: (authService: AuthService) => ({
-                async context({ req }) {
+                async context({ req }: { req: any }) {
                     const { session, user } = await authenticateUser(
                         authService,
                         req,
@@ -46,6 +46,7 @@ import { VideoModule } from './video/video.module';
                     return { req, user, session };
                 },
                 autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+                graphiql: true,
             }),
         }),
         MeiliSearchModule.forRootAsync({

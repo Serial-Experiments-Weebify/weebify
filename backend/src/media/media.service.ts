@@ -24,7 +24,7 @@ import { AddEpisode } from './dto/add-episode.input';
 import { Episode } from './entities/tv.schema';
 import { UpdateEpisode } from './dto/update-episode.input';
 import { EpisodeStatus } from './enums/episodeStatus.enum';
-import MeiliSearch from 'meilisearch';
+import {type MeiliSearch} from 'meilisearch';
 import { InjectMeiliSearch } from 'nestjs-meilisearch';
 import { MediaStatus } from './enums/mediaStatus.enum';
 import { VideoService } from 'src/video/video.service';
@@ -34,7 +34,7 @@ import { Watch, WatchEpisode as DTOWatchEpisode } from './dto/watch.output';
 export class MediaService {
     constructor(
         @InjectModel(Media.name)
-        protected mediaModel: Model<MediaDocument>,
+        protected mediaModel: Model<TVMediaDocument | MovieMediaDocument>,
 
         @InjectModel('tvmedia')
         protected tvMediaModel: Model<TVMediaDocument>,
@@ -234,7 +234,6 @@ export class MediaService {
             primaryKey: 'id',
         });
 
-        await this.meiliSearch.waitForTask(t.taskUid);
 
         const data = await this.mediaModel.aggregate([
             {
@@ -258,11 +257,9 @@ export class MediaService {
             },
         ]);
 
-        const st = await this.meiliSearch
+        await this.meiliSearch
             .index('media')
             .addDocuments(data, { primaryKey: 'id' });
-
-        await this.meiliSearch.waitForTask(st.taskUid);
 
         return true;
     }

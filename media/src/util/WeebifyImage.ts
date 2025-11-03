@@ -1,6 +1,5 @@
 import sharp from 'sharp';
-import getColors from 'get-image-colors';
-
+import { getAverageColor } from "fast-average-color-node"
 const ALLOW_ANIMATED = true;
 
 function inRange(a: number, v: number, b: number) {
@@ -52,17 +51,12 @@ export class WeebifyImage {
             .toBuffer();
     }
 
-    public async getColor(saturationBased?: boolean): Promise<string> {
-        //get low effort png buffer
-        const b = await this.img.png({ effort: 5 }).toBuffer();
-        const colors = await getColors(b, { count: 3, type: 'image/png' });
+    public async getColor(): Promise<string> {
+        if (!this.valid) throw 'Invalid image';
+        
+        const color = await getAverageColor(await this.img.toBuffer());
 
-        if (saturationBased) {
-            //sort so that the most satureated color is first
-            colors.sort((a, b) => b.hsv()[1] - a.hsv()[1]);
-        }
-
-        return colors[0].hex();
+        return color.hex;
     }
 
     public get currentRatio() {

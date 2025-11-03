@@ -3,7 +3,7 @@ import { ref, onMounted, computed } from 'vue';
 
 import { useVuelidate } from '@vuelidate/core';
 import {
-    email,
+    email as emailV,
     minLength,
     maxLength,
     sameAs,
@@ -77,7 +77,7 @@ const rules = {
         minLength: minLength(3),
         maxLength: maxLength(24),
     },
-    email: { email },
+    email: { email: emailV },
     bio: {
         maxLength: maxLength(1000),
     },
@@ -135,7 +135,7 @@ async function updateProfile() {
         if (errors) {
             notify.addNotification(
                 'error',
-                errors[0].message ?? 'Unknown error'
+                errors[0]?.message ?? 'Unknown error'
             );
         } else {
             notify.addNotification(
@@ -145,7 +145,10 @@ async function updateProfile() {
             emit('updated');
         }
     } catch (e: unknown) {
-        notify.addNotification('error', e?.toString() ?? 'Unknown error');
+        notify.addNotification(
+            'error',
+            (e as object).toString() ?? 'Unknown error'
+        );
     } finally {
         loading.value = false;
     }
@@ -170,7 +173,7 @@ async function setPfp(file: File) {
     });
 
     if (errors) {
-        notify.addNotification('error', errors[0].message ?? 'Unknown error');
+        notify.addNotification('error', errors[0]?.message ?? 'Unknown error');
         pfpLoading.value = false;
         return;
     }
@@ -224,7 +227,7 @@ async function setRole() {
         if (errors) {
             notify.addNotification(
                 'error',
-                errors[0].message ?? 'Unknown error'
+                errors[0]?.message ?? 'Unknown error'
             );
         }
         if (data?.setRole) {
@@ -232,7 +235,10 @@ async function setRole() {
             emit('updated');
         }
     } catch (e: unknown) {
-        notify.addNotification('error', e?.toString() ?? 'Unknown error');
+        notify.addNotification(
+            'error',
+            (e as object).toString() ?? 'Unknown error'
+        );
     } finally {
         roleLoading.value = false;
     }
@@ -256,7 +262,7 @@ async function createInvite() {
         if (errors) {
             notify.addNotification(
                 'error',
-                errors[0].message ?? 'Unknown error'
+                errors[0]?.message ?? 'Unknown error'
             );
         }
         if (data?.generateInviteCode) {
@@ -267,7 +273,10 @@ async function createInvite() {
             emit('updated');
         }
     } catch (e: unknown) {
-        notify.addNotification('error', e?.toString() ?? 'Unknown error');
+        notify.addNotification(
+            'error',
+            (e as object).toString() ?? 'Unknown error'
+        );
     } finally {
         inviteLoading.value = false;
     }

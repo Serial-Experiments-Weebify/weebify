@@ -102,7 +102,10 @@ async function signup() {
             router.push({ name: 'login' });
         }
     } catch (e: unknown) {
-        notify.addNotification('error', e?.toString() ?? 'Unknown error');
+        notify.addNotification(
+            'error',
+            (e as object).toString() ?? 'Unknown error'
+        );
     } finally {
         loading.value = false;
     }

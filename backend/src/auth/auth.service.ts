@@ -11,7 +11,7 @@ import { Types } from 'mongoose';
 import { LoginInput } from './dto/login.input';
 import { JwtService } from '@nestjs/jwt';
 import { InjectMeiliSearch } from 'nestjs-meilisearch';
-import MeiliSearch from 'meilisearch';
+import { type MeiliSearch } from 'meilisearch';
 import { HttpAdapterHost } from '@nestjs/core';
 import { Application } from 'express';
 
@@ -93,7 +93,7 @@ export class AuthService {
 
         const jwt = this.jwt.sign(
             { uid: user.id, sid: session.id },
-            { expiresIn: SESSION_DURATION },
+            { expiresIn: SESSION_DURATION / 1000 },
         );
 
         return { user, jwt, expiration, searchKey: key.key };
@@ -115,13 +115,17 @@ export class AuthService {
 
         const data = await this.jwt.verifyAsync<WeebfiyJWT>(token);
 
+        console.log('Matching token', { data });
+
         if (typeof data?.uid !== 'string' || typeof data?.sid !== 'string')
             return { user: null, session: null };
 
-        const user = await this.userModel.findOne({
-            _id: data.uid,
-            sessions: { $elemMatch: { _id: data.sid } },
-        });
+        const q = {
+            _id: new Types.ObjectId(data.uid),
+            sessions: { $elemMatch: { id: new Types.ObjectId(data.sid) } },
+        };
+        console.log(q);
+        const user = await this.userModel.findOne(q);
 
         if (!user) {
             return { user: null, session: null };

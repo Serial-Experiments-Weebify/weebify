@@ -48,7 +48,7 @@ export function envVars<T extends EnvVarsDefiniton>(
         const v = process.env[name];
         if (v === undefined) {
             if (defaultValue !== null) {
-                result[name as keyof T] = defaultValue;
+                result[name as keyof T] = defaultValue as any;
             } else {
                 throw `Missing enviroment variable ${name}`;
             }

@@ -36,7 +36,7 @@ import { VideoModule } from 'src/video/video.module';
                                     coverColor: this.coverColor,
                                     status: this.status,
                                     episodes:
-                                        (this as TVMediaDocument).episodes
+                                        (this as unknown as TVMediaDocument).episodes
                                             ?.length ?? 0,
                                 },
                             ]);
@@ -51,7 +51,7 @@ import { VideoModule } from 'src/video/video.module';
                     // sort episodes on save
                     schema.pre('save', function (next) {
                         if (this.kind == MediaKind.TV) {
-                            const that = this as TVMediaDocument;
+                            const that = this as unknown as TVMediaDocument;
                             if (that.episodes) {
                                 that.episodes = that.episodes.sort((a, b) => {
                                     const ediff =

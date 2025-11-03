@@ -31,8 +31,11 @@ export class AuthResolver {
         @Context('req') request: Request,
     ): Promise<AuthSession> {
         const ip = request.ip;
-        const userAgent = request.headers['user-agent'] ?? '<unknown>';
-        const auth = await this.auth.loginSession(input, ip, userAgent);
+        const auth = await this.auth.loginSession(
+            input,
+            ip ?? 'unknown',
+            request.headers['user-agent'] ?? '<unknown>',
+        );
 
         return {
             token: auth.jwt,

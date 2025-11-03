@@ -10,9 +10,9 @@ export const authenticateUser = async (
     request: Request,
 ) => {
     const token = request.headers.authorization?.replace('Bearer ', '');
-
     const mt = await authService.matchToken(token);
     const sid = mt.session;
+    console.log({ mt, sid });
     if (!mt.user || !sid) return mt;
 
     const session = mt.user.sessions.find((s) => s.id.equals(sid));
@@ -28,7 +28,7 @@ export const authenticateUser = async (
         authService.updateSession(
             mt.user.id,
             sid,
-            request.ip,
+            request.ip ?? '<unknown>',
             request.headers['user-agent'] ?? '<unknown>',
         );
     }

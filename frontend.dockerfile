@@ -3,7 +3,7 @@ FROM node:20 as build-frontend
 WORKDIR /frontend
 COPY frontend/package*.json .
 
-RUN npm ci 
+RUN npm i 
 
 COPY frontend .
 

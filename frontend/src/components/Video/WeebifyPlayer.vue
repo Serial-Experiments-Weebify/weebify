@@ -43,8 +43,8 @@ const props = defineProps<{
     fonts: VideoFontRef[];
 }>();
 
-const resolutions = ref([] as Bitrate[]);
-const resolutionIndex = ref(0);
+const streams = ref([] as Bitrate[]);
+const streamIndex = ref(0);
 
 const audioTracks = ref([] as MediaInfo[]);
 const audioTrackIndex = ref(0);
@@ -78,14 +78,14 @@ onMounted(() => {
 
     p.on(MediaPlayer.events.CAN_PLAY, () => {
         // query resolutions and tracks on load
-        resolutions.value = p.getTracksFor('video')[0].bitrateList ?? [];
+        streams.value = p.getTracksFor('video')[0]?.bitrateList ?? [];
         audioTracks.value = p.getTracksFor('audio');
     });
 
     p.on(MediaPlayer.events.QUALITY_CHANGE_RENDERED, (e) => {
         // when quality switches, update state
         if (e.mediaType === 'video') {
-            resolutionIndex.value = e.newQuality;
+            streamIndex.value = e.newQuality;
         }
     });
 
@@ -219,10 +219,10 @@ const showControls = computed(
                 <div class="resolutions">
                     <span class="st">Video</span>
                     <span
-                        v-for="(r, i) in resolutions"
+                        v-for="(r, i) in streams"
                         :key="r.id"
                         class="res"
-                        :class="{ active: i == resolutionIndex }"
+                        :class="{ active: i == streamIndex }"
                         @click="setRes(i)"
                         >{{ r.width }}x{{ r.height }}</span
                     >
@@ -233,7 +233,7 @@ const showControls = computed(
 
                     <span
                         v-for="a in audioTracks"
-                        :key="a.id"
+                        :key="a.id ?? undefined"
                         class="aud"
                         :class="{ active: a.index == audioTrackIndex }"
                         @click="setAudioTrack(a)"
@@ -258,7 +258,7 @@ const showControls = computed(
 
             <!-- Seekbar -->
             <SeekBar
-                v-model:currentTime="currentTime"
+                v-model:current-time="currentTime"
                 :duration="duration"
                 :buffered="buffered"
                 :chapters="props.chapters"

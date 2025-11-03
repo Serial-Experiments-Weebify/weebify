@@ -51,7 +51,10 @@ async function remove() {
             emit('removed');
         }
     } catch (e: unknown) {
-        notify.addNotification('error', e?.toString() ?? 'Unknown error');
+        notify.addNotification(
+            'error',
+            (e as object).toString() ?? 'Unknown error'
+        );
     } finally {
         removing.value = false;
     }
