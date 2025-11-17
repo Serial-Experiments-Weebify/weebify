@@ -18,10 +18,13 @@ jobs:
                 include:
                     - image: frontend
                       path: ./frontend.dockerfile
+                      context: .
                     - image: backend
                       path: ./backend/Dockerfile
+                      context: ./backend
                     - image: media
                       path: ./media/Dockerfile
+                      context: ./media
 
         steps:
             - uses: actions/checkout@v4
@@ -46,8 +49,7 @@ jobs:
               uses: docker/build-push-action@v6
               with:
                   platforms: linux/amd64
-                  context: .
                   push: true
-                  file: ${{ matrix.path}}
+                  file: ${{ matrix.path }}
+                  context: ${{ matrix.context }}
                   tags: ${{ steps.vars.outputs.tag }}
-
