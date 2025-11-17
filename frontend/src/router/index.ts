@@ -12,13 +12,13 @@ const router = createRouter({
         {
             path: '/',
             name: 'index',
-            component: import('@/views/IndexView.vue'),
+            component: () => import('@/views/IndexView.vue'),
             meta: {},
         },
         {
             path: '/login',
             name: 'login',
-            component: import('@/views/LoginView.vue'),
+            component: () => import('@/views/LoginView.vue'),
             meta: {
                 auth: AuthState.LoggedOut,
             },
@@ -26,7 +26,7 @@ const router = createRouter({
         {
             path: '/signup',
             name: 'signup',
-            component: import('@/views/SignUpView.vue'),
+            component: () => import('@/views/SignUpView.vue'),
             meta: {
                 auth: AuthState.LoggedOut,
             },
@@ -34,7 +34,7 @@ const router = createRouter({
         {
             path: '/user/:username',
             name: 'user',
-            component: import('@/views/UserView.vue'),
+            component: () => import('@/views/UserView.vue'),
             props: true,
             meta: {
                 auth: AuthState.LoggedIn,
@@ -43,7 +43,7 @@ const router = createRouter({
         {
             path: '/home',
             name: 'home',
-            component: import('@/views/HomeView.vue'),
+            component: () => import('@/views/HomeView.vue'),
             meta: {
                 auth: AuthState.LoggedIn,
             },
@@ -51,7 +51,7 @@ const router = createRouter({
         {
             path: '/search',
             name: 'search',
-            component: import('@/views/SearchView.vue'),
+            component: () => import('@/views/SearchView.vue'),
             meta: {
                 auth: AuthState.LoggedIn,
             },
@@ -60,7 +60,7 @@ const router = createRouter({
             path: '/m/:id',
             name: 'media',
             props: true,
-            component: import('@/views/MediaView.vue'),
+            component: () => import('@/views/MediaView.vue'),
             meta: {
                 auth: AuthState.LoggedIn,
             },
@@ -69,7 +69,7 @@ const router = createRouter({
             path: '/w/:mid/:eid?',
             name: 'watch',
             props: true,
-            component: import('@/views/WatchView.vue'),
+            component: () => import('@/views/WatchView.vue'),
             meta: {
                 auth: AuthState.LoggedIn,
             },

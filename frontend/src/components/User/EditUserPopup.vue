@@ -145,10 +145,7 @@ async function updateProfile() {
             emit('updated');
         }
     } catch (e: unknown) {
-        notify.addNotification(
-            'error',
-            (e as object).toString() ?? 'Unknown error'
-        );
+        notify.errorNotification(e);
     } finally {
         loading.value = false;
     }
@@ -235,10 +232,7 @@ async function setRole() {
             emit('updated');
         }
     } catch (e: unknown) {
-        notify.addNotification(
-            'error',
-            (e as object).toString() ?? 'Unknown error'
-        );
+        notify.errorNotification(e);
     } finally {
         roleLoading.value = false;
     }
@@ -273,10 +267,7 @@ async function createInvite() {
             emit('updated');
         }
     } catch (e: unknown) {
-        notify.addNotification(
-            'error',
-            (e as object).toString() ?? 'Unknown error'
-        );
+        notify.errorNotification(e);
     } finally {
         inviteLoading.value = false;
     }

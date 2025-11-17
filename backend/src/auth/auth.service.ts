@@ -160,7 +160,7 @@ export class AuthService {
     async revokeSession(uid: string, sid: string) {
         const userWithSession = await this.userModel.findOne({
             _id: uid,
-            sessions: { $elemMatch: { _id: sid } },
+            sessions: { $elemMatch: { id: sid } },
         });
 
         if (!userWithSession)

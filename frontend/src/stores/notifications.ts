@@ -1,5 +1,6 @@
 import { ref } from 'vue';
 import { defineStore } from 'pinia';
+// import { ApolloError } from '@apollo/client';
 
 type Level = 'info' | 'warn' | 'error' | 'success';
 
@@ -26,6 +27,25 @@ export const useNotificationStore = defineStore('notifications', () => {
         if (!time) time = TYPE2TIME[type];
         notifications.value.push({ id, type, message, time });
     }
+
+    function errorNotification(error: unknown) {
+        if (typeof error === 'string') {
+            return addNotification('error', error);
+        }
+
+        // if (error instanceof ApolloError) {
+        //     addNotification('error', error.message);
+        // }
+
+        console.error(error);
+
+        if (error instanceof Error) {
+            return addNotification('error', error.message);
+        }
+
+        addNotification('error', error?.toString?.() ?? 'An unknown error occurred');
+    }
+
     function removeNotification(id: number) {
         const index = notifications.value.findIndex((x) => x.id == id);
         if (index != -1) {
@@ -33,5 +53,5 @@ export const useNotificationStore = defineStore('notifications', () => {
         }
     }
 
-    return { notifications, addNotification, removeNotification };
+    return { notifications, addNotification, removeNotification, errorNotification };
 });

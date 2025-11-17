@@ -20,10 +20,7 @@ async function login() {
         notify.addNotification('info', 'Present Day, Present Time...');
         router.replace({ name: 'home' });
     } catch (e: unknown) {
-        notify.addNotification(
-            'error',
-            (e as object).toString?.() ?? 'Unknown error'
-        );
+        notify.errorNotification(e);
     } finally {
         loading.value = false;
     }
