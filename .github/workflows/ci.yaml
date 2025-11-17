@@ -45,9 +45,9 @@ jobs:
             - name: Build and push image
               uses: docker/build-push-action@v6
               with:
-                  platforms: linux/amd64,linux/arm64
-                  push: true
+                  platforms: linux/amd64
                   context: .
-                  file: ./frontend/Dockerfile
+                  push: true
+                  file: ${{ matrix.path}}
                   tags: ${{ steps.vars.outputs.tag }}
 
