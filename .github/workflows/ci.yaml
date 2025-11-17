@@ -39,7 +39,8 @@ jobs:
               run: |
                   BRANCH=$(echo "${GITHUB_REF_NAME}" | tr '/' '-')
                   COMMIT=${GITHUB_SHA::7}
-                  echo "tag=ghcr.io/${GITHUB_REPOSITORY}-${{ matrix.image }}:${BRANCH}-${COMMIT}" >> $GITHUB_OUTPUT
+                  REPO_LOWER=$(echo "${GITHUB_REPOSITORY}" | tr '[:upper:]' '[:lower:]')
+                  echo "tag=ghcr.io/${REPO_LOWER}-${{ matrix.image }}:${BRANCH}-${COMMIT}" >> $GITHUB_OUTPUT
 
             - name: Build and push image
               uses: docker/build-push-action@v6
