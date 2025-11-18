@@ -3,7 +3,7 @@ FROM node:24-alpine AS build-frontend
 WORKDIR /frontend
 COPY frontend/package*.json .
 
-RUN npm ci 
+RUN npm ci
 
 COPY backend/src/schema.gql /schema.gql
 
