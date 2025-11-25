@@ -17,10 +17,17 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MeiliSearchModule } from 'nestjs-meilisearch';
 import { ManagementModule } from './management/management.module';
 import { VideoModule } from './video/video.module';
+import dockerSecrets from './config/docker-secrets';
 
 @Module({
     imports: [
-        ConfigModule.forRoot({ isGlobal: true }),
+        ConfigModule.forRoot({ isGlobal: true, load: [
+            dockerSecrets({
+                'DATABASE': 'mongoConnection',
+                'AUTH_JWT_KEY': 'authJwtKey',
+                'SEARCH_KEY': 'searchKey',
+            })
+        ] }),
 
         MongooseModule.forRootAsync({
             imports: [ConfigModule],

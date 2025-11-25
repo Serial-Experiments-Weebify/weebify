@@ -1,4 +1,4 @@
-import { envVars, portNumber } from '../util/env';
+import { envVars, EnvVarsDefiniton, portNumber } from '../util/env';
 import { Service } from 'typedi';
 
 @Service()
@@ -8,17 +8,17 @@ export class ConfigService {
         PORT: { transformer: portNumber, defaultValue: 3330 },
 
         // Auth config
-        AUTH_JWT_KEY: { defaultValue: '' },
+        AUTH_JWT_KEY: { dockerSecretKey: 'authJwtKey' },
 
         // Database config
-        MONGO: { defaultValue: null },
+        MONGO: { dockerSecretKey: 'mongoConnection' },
 
         // S3 config
         S3_BUCKET: { defaultValue: 'weebify' },
-        S3_ENDPOINT: { defaultValue: null },
-        S3_PORT: { transformer: portNumber, defaultValue: null },
-        S3_ACCESS_KEY: { defaultValue: '' },
-        S3_SECRET: { defaultValue: '' },
+        S3_ENDPOINT: {},
+        S3_PORT: { transformer: portNumber },
+        S3_ACCESS_KEY: { dockerSecretKey: 's3AccessKey' },
+        S3_SECRET: { dockerSecretKey: 's3Secret' },
         S3_SSL: {
             transformer: (v: string) =>
                 ['1', 'true', 'yes'].includes(v.toLowerCase()),
@@ -26,13 +26,11 @@ export class ConfigService {
         },
 
         // MeiliSearch config
-        SEARCH_HOST: {
-            defaultValue: '',
-        },
+        SEARCH_HOST: {},
         SEARCH_KEY: {
-            defaultValue: '',
+            dockerSecretKey: 'searchKey',
         },
-    };
+    } satisfies EnvVarsDefiniton;
 
     private _vars: ReturnType<typeof envVars<typeof ConfigService.VARS>>;
     constructor() {
