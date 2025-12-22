@@ -13,18 +13,18 @@ import { S3Service } from './services/s3.service';
 app.use('/media', mediaController);
 
 async function main() {
-    const { vars } = Container.get(ConfigService);
+    const config = Container.get(ConfigService);
     const s3 = Container.get(S3Service);
 
     console.log('Connectiong to DB...');
-    await connect(vars.MONGO);
+    await connect(config.mongoUrl);
     console.log('Database connected');
 
     console.log('Testing S3...');
     if (!(await s3.verify())) return;
 
-    app.listen(vars.PORT);
-    console.log(`Listening on ${vars.PORT}`);
+    app.listen(config.vars.PORT);
+    console.log(`Listening on ${config.vars.PORT}`);
 }
 
 main();

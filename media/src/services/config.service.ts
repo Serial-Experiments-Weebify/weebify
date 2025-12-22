@@ -1,6 +1,7 @@
 import { envVars, EnvVarsDefiniton, portNumber } from '../util/env';
 import { Service } from 'typedi';
-
+// import {} from 
+ 
 @Service()
 export class ConfigService {
     static VARS = {
@@ -11,8 +12,12 @@ export class ConfigService {
         AUTH_JWT_KEY: { dockerSecretKey: 'authJwtKey' },
 
         // Database config
-        MONGO: { dockerSecretKey: 'mongoConnection' },
-
+        MONGO: {},
+        MONGO_SECRET: {
+            defaultValue: undefined,
+            transformer: (v: string | undefined) => v,
+            dockerSecretKey: 'mongoSecret',
+        },
         // S3 config
         S3_BUCKET: { defaultValue: 'weebify' },
         S3_ENDPOINT: {},
@@ -39,5 +44,16 @@ export class ConfigService {
 
     public get vars() {
         return this._vars;
+    }
+
+    public get mongoUrl() {
+        if (!this._vars.MONGO_SECRET) return this._vars.MONGO;
+
+        console.log("Using MongoDB secret from Docker secrets");
+
+        const url = new URL(this._vars.MONGO);
+        url.password = this._vars.MONGO_SECRET;
+
+        return url.toString();
     }
 }

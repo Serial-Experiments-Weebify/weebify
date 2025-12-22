@@ -23,7 +23,7 @@ import dockerSecrets from './config/docker-secrets';
     imports: [
         ConfigModule.forRoot({ isGlobal: true, load: [
             dockerSecrets({
-                'DATABASE': 'mongoConnection',
+                'MONGO_SECRET': 'mongoSecret',
                 'AUTH_JWT_KEY': 'authJwtKey',
                 'SEARCH_KEY': 'searchKey',
             })
@@ -33,9 +33,17 @@ import dockerSecrets from './config/docker-secrets';
             imports: [ConfigModule],
             inject: [ConfigService],
             async useFactory(config: ConfigService) {
-                const uri = await config
+                let uri = await config
                     .getOrThrow('DATABASE')
                     .replace(/(^\"|\"$)/g, ''); // WHY IS THIS NEEDED???
+                
+                const secret = config.get('DATABASE_SECRET');
+                if (secret) {
+                    const url = new URL(uri);
+                    console.log("Using MongoDB secret from Docker secrets");
+                    url.password = secret;
+                    uri = url.toString();
+                }
 
                 return { uri };
             },
