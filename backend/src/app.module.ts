@@ -21,13 +21,16 @@ import dockerSecrets from './config/docker-secrets';
 
 @Module({
     imports: [
-        ConfigModule.forRoot({ isGlobal: true, load: [
-            dockerSecrets({
-                'MONGO_SECRET': 'mongoSecret',
-                'AUTH_JWT_KEY': 'authJwtKey',
-                'SEARCH_KEY': 'searchKey',
-            })
-        ] }),
+        ConfigModule.forRoot({
+            isGlobal: true,
+            load: [
+                dockerSecrets({
+                    MONGO_SECRET: 'mongoSecret',
+                    AUTH_JWT_KEY: 'authJwtKey',
+                    SEARCH_KEY: 'searchKey',
+                }),
+            ],
+        }),
 
         MongooseModule.forRootAsync({
             imports: [ConfigModule],
@@ -35,12 +38,12 @@ import dockerSecrets from './config/docker-secrets';
             async useFactory(config: ConfigService) {
                 let uri = await config
                     .getOrThrow('DATABASE')
-                    .replace(/(^\"|\"$)/g, ''); // WHY IS THIS NEEDED???
-                
-                const secret = config.get('DATABASE_SECRET');
+                    .replace(/(^\"|\"$)/g, '');
+
+                const secret = config.get('MONGO_SECRET');
                 if (secret) {
                     const url = new URL(uri);
-                    console.log("Using MongoDB secret from Docker secrets");
+                    console.log('Using MongoDB secret from Docker secrets');
                     url.password = secret;
                     uri = url.toString();
                 }
