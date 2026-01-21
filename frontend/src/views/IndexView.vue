@@ -30,60 +30,39 @@ const auth = useAuthStore();
                 pfp-side="left"
                 image="/misc/martin.webp"
             >
-                Weebify is lit, just like Megumin's Explosion spell. Never have
-                to worry about buffering or lag again, it's like a KABOOM of
-                anime goodness!
+                😹 systemd
             </UserTestimonial>
+
             <UserTestimonial
-                name="Teknix"
+                name="Matic?"
                 pfp-side="right"
-                image="/misc/teknix.webp"
-            >
-                "Great hentai website"
-            </UserTestimonial>
-            <UserTestimonial
-                name="Ted Kaczynski"
-                pfp-side="left"
-                image="/misc/ted.webp"
-            >
-                The Industrial Revolution and its consequences have been a
-                disaster for the human race.
-            </UserTestimonial>
-            <UserTestimonial
-                name="David"
-                pfp-side="right"
-                image="/misc/david.webp"
-            >
-                10/10
-            </UserTestimonial>
-            <UserTestimonial
-                name="Matic (developer)"
-                pfp-side="left"
                 image="/misc/asuka.png"
             >
-                :painpeko:
+                Kubernetes was invented by big YAML to sell more YAML.
             </UserTestimonial>
-            <UserTestimonial
-                name="Fulcrum"
-                pfp-side="right"
-                image="/misc/fulcrum.webp"
-            >
-                I am the original Fulcrum. FULCRUM! COME IN!
-                <br />
-                YUUUUUUUUUUUUUUUUUUUH... YODIE GANG! ya feel me?
-            </UserTestimonial>
+
             <UserTestimonial
                 name="Bane"
                 pfp-side="left"
                 image="/misc/bane.webp"
             >
-                It doesn't matter who we are. What matters is our plan.
+                Perhaps he is wondering why someone would shoot a man before
+                throwing him out of a plane.
             </UserTestimonial>
         </div>
     </main>
 </template>
 
 <style scoped lang="less">
+@keyframes slideGradient {
+    from {
+        background-position: 0% center;
+    }
+    to {
+        background-position: 500% center;
+    }
+}
+
 main {
     background-image: linear-gradient(fade(@c-mirage, 75%), fade(@c-oil, 100%)),
         url('@/assets/images/wallpaper.jpg');
@@ -102,13 +81,25 @@ main {
 
         h1 {
             font-size: clamp(36px, 7vw, 120px);
+            max-width: 1600px;
             font-weight: 400;
             text-align: center;
             margin: 32px 0;
+            filter: drop-shadow(0 0 10px @c-mirage)
+                drop-shadow(0 0 20px @c-mirage) drop-shadow(0 0 30px @c-mirage);
 
             .hl {
-                color: @c-cyan;
                 font-weight: 600;
+                background: radial-gradient(
+                    in oklch circle,
+                    @c-cyan,
+                    @c-mandy,
+                    @c-cyan
+                );
+                background-clip: text;
+                color: transparent;
+                background-size: 500% auto;
+                animation: slideGradient 12s linear infinite;
             }
         }
 
